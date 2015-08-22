@@ -1,0 +1,8 @@
+*.o
+*.a
+*.out
+.ycm_extra_conf.py
+*.pyc
+
+!include/
+ep1sh
