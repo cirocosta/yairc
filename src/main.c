@@ -17,12 +17,16 @@ void communicate(FILE* fp, int sockfd)
 int main(int argc, char* argv[])
 {
   int sock_fd;
+
+
+  // FIXME change this to something easier.
+  //       Like: yi_connection_t yi_create_connection(yi_url());
   struct sockaddr_in server_addr;
 
   sock_fd = yi_socket(AF_INET, SOCK_STREAM, 0);
   memset(&server_addr, 0, sizeof(server_addr));
   server_addr.sin_family = AF_INET;
-  server_addr.sin_port = htons(YI_PORT_ECHO);
+  server_addr.sin_port = htons(YI_PORT_IRC);
   yi_inet_pton(AF_INET, argv[1], &server_addr.sin_addr);
 
   yi_connect(sock_fd, (SA*)&server_addr, sizeof(server_addr));
