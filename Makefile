@@ -5,8 +5,8 @@ LIBS =
 DEFS = -D_GNU_SOURCE 
 INCLUDES = -I/usr/include -I./include
 
-PROGRAM = irc-parser
-LIB = src/libircparser.a
+PROGRAM = yairc
+LIB = src/libyairc.a
 SOURCE = src/main.c
 TESTS_DIR = tests/
 
@@ -34,16 +34,15 @@ $(LIB): $(LIB_OBJS)
 %.o: %.c
 	$(CC) $(CFLAGS) $(DEFS) $(INCLUDES) -c -o $@ $<
 
+
+.PHONY: clean test depend
+
 depend: .depend
 
 .depend: $(SRCS)
-	rm -f ./.depend
-	$(CC) $(CFLAGS) -MM $^ -MF ./.depend
+	@$(CC) $(CFLAGS) $(INCLUDES) -MM $^ -MF ./.depend
 
 include .depend
-
-
-.PHONY: clean test
 
 test: $(LIB) $(TESTS)
 
