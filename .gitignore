@@ -3,6 +3,7 @@
 *.out
 .ycm_extra_conf.py
 *.pyc
+.depend
 
 !include/
 ep1sh
