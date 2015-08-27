@@ -1,7 +1,15 @@
 #ifndef YI__UNET_H
 #define YI__UNET_H
 
-#include "yairc/common.h"
+/**
+ * Unix Networking
+ *
+ * Wraps unix networking related functions w/
+ * error handling and/or default parameters
+ * properly filled.
+ */
+
+#include "yairc/debug.h"
 
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -14,19 +22,26 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
+#include <netdb.h>
 
 // SIZES
 #define YI_LISTEN_BACKLOG 1024
 #define YI_MAXLINE 4096
 #define YI_BUFFSIZE 8192
 
-// PORTS
+#define YI_INET_ADDR_STRLEN 16
+#define YI_INET6_ADDR_STRLEN 46
+
+// PORTS. See more @ /etc/services
 #define YI_PORT_DAYTIME 13
 #define YI_PORT_ECHO 7
 #define YI_PORT_IRC 6667
 #define YI_PORT_SMTP 25
 
 typedef struct sockaddr SA;
+
+struct addrinfo *yi_getaddr(const char *host, const char *serv, int family,
+                            int socktype);
 
 int yi_socket(int family, int type, int protocol);
 

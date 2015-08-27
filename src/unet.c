@@ -1,5 +1,27 @@
 #include "yairc/unet.h"
 
+struct addrinfo *yi_getaddr(const char *host, const char *serv, int family,
+                            int socktype)
+{
+  int n;
+  struct addrinfo hints;
+  struct addrinfo *res;
+
+  memset(&hints, 0, sizeof(struct addrinfo));
+  hints.ai_flags = AI_CANONNAME;
+  hints.ai_family = family;
+  hints.ai_socktype = socktype;
+
+  if ((n = getaddrinfo(host, serv, &hints, &res))) {
+    DLOGERR("yi_getaddr error for %s, %s: %s",
+            (host == NULL) ? "(no hostname)" : host,
+            (serv == NULL) ? "(no service name)" : serv, gai_strerror(n));
+    return NULL;
+  }
+
+  return res;
+}
+
 int yi_socket(int family, int type, int protocol)
 {
   int n;
