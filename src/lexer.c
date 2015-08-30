@@ -42,6 +42,54 @@ void yi_buffer_destroy(yi_buffer_t* buf)
   FREE(buf);
 }
 
+static inline char const* _is_single_terminal(char const* la, char c)
+{
+  return *la == c ? ++la : NULL;
+}
+
+static char const* _is_shortname(char const* la)
+{
+  char const* peek = la;
+
+  // alteranation
+  if (!(isdigit(*peek) || isalpha(*peek)))
+    return NULL;
+
+  peek++;
+
+  // kleene-star
+  while (isdigit(*peek) || isalpha(*peek) || *peek == '-')
+    peek++;
+  while (isdigit(*peek) || isalpha(*peek))
+    peek++;
+
+  return peek;
+}
+
+static char const* _is_hostname(char const* la)
+{
+  char const* peek = la;
+  char const* tmp_peek;
+
+  if (!(peek = _is_shortname(peek)))
+    return NULL;
+
+  tmp_peek = peek;
+
+  // kleene-star
+  while (1) {
+    // concatenation
+    if ((tmp_peek = _is_single_terminal(tmp_peek, '.')) &&
+        (tmp_peek = _is_shortname(tmp_peek))) {
+      peek = tmp_peek;
+      continue;
+    }
+    break;
+  }
+
+  return peek;
+}
+
 int yi_lex_space(yi_buffer_t* buf)
 {
   if (*buf->la != 0x20)
@@ -79,25 +127,10 @@ int yi_lex_letter(yi_buffer_t* buf)
 // {shortname}("."{shortname})*
 int yi_lex_hostname(yi_buffer_t* buf)
 {
-  yi_buffer_t tmp_buf;
-  tmp_buf.la = buf->la;
-  char const* peek = buf->la;
-  tmp_buf.token = buf->token;
+  char const* peek;
 
-  if (!yi_lex_shortname(&tmp_buf))
+  if (!(peek = _is_hostname(buf->la)))
     return 0;
-
-  peek = tmp_buf.la;
-
-  // kleene-star
-  while (1) {
-    // concatenation
-    if (yi_lex_single_terminal(&tmp_buf, '.') && yi_lex_shortname(&tmp_buf)) {
-      peek = tmp_buf.la;
-      continue;
-    }
-    break;
-  }
 
   buf->token->len = peek - buf->la;
   buf->token->type = YI_T_HOSTNAME;
@@ -110,19 +143,10 @@ int yi_lex_hostname(yi_buffer_t* buf)
 // ({letter}|{digit})(letter|digit|'-')*(letter|digit)*
 int yi_lex_shortname(yi_buffer_t* buf)
 {
-  char const* peek = buf->la;
+  char const* peek;
 
-  // alteranation
-  if (!(isdigit(*peek) || isalpha(*peek)))
+  if (!(peek = _is_shortname(buf->la)))
     return 0;
-
-  peek++;
-
-  // kleene-star
-  while (isdigit(*peek) || isalpha(*peek) || *peek == '-')
-    peek++;
-  while (isdigit(*peek) || isalpha(*peek))
-    peek++;
 
   buf->token->len = peek - buf->la;
   buf->token->type = YI_T_SHORTNAME;
