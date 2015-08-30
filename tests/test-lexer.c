@@ -13,7 +13,7 @@ void test1()
   ASSERT(yi_lex_terminal(buf, "PING", strlen("PING")),
          "tokenize terminal PING command");
   ASSERT(buf->token->type == YI_T_TERMINAL, "");
-  ASSERT(!strncmp(buf->token->buf, "PING", strlen("PING")), "");
+  STRNCMP(buf->token->buf, "PING");
 
   // " "
   ASSERT(yi_lex_space(buf), "tokenize terminal space");
@@ -22,9 +22,14 @@ void test1()
   ASSERT(yi_lex_single_terminal(buf, ':'), "tokenize terminal space");
   ASSERT(buf->token->type == YI_T_SINGLE_TERMINAL, "");
 
-  /* // {HOSTNAME} */
-  ASSERT(yi_lex_shortname(buf), "tokenize terminal shortname");
-  ASSERT(buf->token->type == YI_T_SHORTNAME, "");
+  // {HOSTNAME}
+  ASSERT(yi_lex_hostname(buf), "tokenize terminal hostname");
+  ASSERT(buf->token->type == YI_T_HOSTNAME, "");
+  STRNCMP(buf->token->buf, "levin.mozilla.org");
+
+  // {CRLF}
+  ASSERT(yi_lex_crlf(buf), "tokenize crlf");
+  ASSERT(buf->token->type == YI_T_CRLF, "");
 
   yi_buffer_destroy(buf);
 }

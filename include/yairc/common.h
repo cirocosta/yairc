@@ -43,6 +43,9 @@
     }                                                                          \
   } while (0)
 
+#define STRNCMP(__a, __b)                                                      \
+  ASSERT(!strncmp(__a, __b, strlen(__b)), "%s != %s", __a, __b)
+
 #define PASSERT(condition, message, ...)                                       \
   do {                                                                         \
     if (!(condition)) {                                                        \

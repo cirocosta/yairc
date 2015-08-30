@@ -16,7 +16,8 @@ typedef enum yi_token_type_e {
   YI_T_SPACE,
   YI_T_TERMINAL,
   YI_T_SINGLE_TERMINAL,
-  YI_T_SHORTNAME
+  YI_T_SHORTNAME,
+  YI_T_HOSTNAME
 } yi_token_type_e;
 
 typedef struct yi_token_t {
@@ -45,6 +46,7 @@ static inline int yi_in_range(char value, char begin, char end)
 
 int yi_lex(yi_buffer_t* buf);
 int yi_lex_shortname(yi_buffer_t* buf);
+int yi_lex_hostname(yi_buffer_t* buf);
 int yi_lex_space(yi_buffer_t* buf);
 int yi_lex_crlf(yi_buffer_t* buf);
 int yi_lex_letter(yi_buffer_t* buf);
