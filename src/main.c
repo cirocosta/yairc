@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include "yairc/connection.h"
 
+#define WRITE(__fd, __str) write(__fd, __str, strlen(__str))
+
 static const char* CLI_HELP =
     "Usage: yairc <url> <service>\n"
     "\n"
@@ -14,6 +16,9 @@ void communicate(int sockfd)
 {
   size_t nread = 0;
   char recvline[YI_MAXLINE] = { 0 };
+
+  WRITE(sockfd, "NICK guest\r\n");
+  WRITE(sockfd, "USER guest 0 * :A Cool Guest\r\n");
 
   while ((nread = read(sockfd, recvline, YI_MAXLINE))) {
     write(STDOUT_FILENO, recvline, nread + 1);

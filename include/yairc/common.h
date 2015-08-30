@@ -1,6 +1,7 @@
 #ifndef YAIRC__COMMON_H
 #define YAIRC__COMMON_H
 
+#include <errno.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -49,6 +50,12 @@
       fprintf(stderr, "%s\n", strerror(errno));                                \
       exit(EXIT_FAILURE);                                                      \
     }                                                                          \
+  } while (0)
+
+#define TEST(__test, ...)                                                      \
+  do {                                                                         \
+    __test();                                                                  \
+    LOG("%s: %s:" #__VA_ARGS__ " OK!", __BASE_FILE__, #__test);                \
   } while (0)
 
 #endif // ! YAIRC__COMMON_H
