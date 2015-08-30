@@ -8,11 +8,23 @@ void test1()
 {
   const char* msg = "PING :levin.mozilla.org\r\n";
   yi_buffer_t* buf = yi_buffer_create(msg, strlen(msg));
+
+  // "PING"
   ASSERT(yi_lex_terminal(buf, "PING", strlen("PING")),
          "tokenize terminal PING command");
-
   ASSERT(buf->token->type == YI_T_TERMINAL, "");
   ASSERT(!strncmp(buf->token->buf, "PING", strlen("PING")), "");
+
+  // " "
+  ASSERT(yi_lex_space(buf), "tokenize terminal space");
+  ASSERT(buf->token->type == YI_T_SPACE, "");
+
+  ASSERT(yi_lex_single_terminal(buf, ':'), "tokenize terminal space");
+  ASSERT(buf->token->type == YI_T_SINGLE_TERMINAL, "");
+
+  /* // {HOSTNAME} */
+  ASSERT(yi_lex_shortname(buf), "tokenize terminal shortname");
+  ASSERT(buf->token->type == YI_T_SHORTNAME, "");
 
   yi_buffer_destroy(buf);
 }

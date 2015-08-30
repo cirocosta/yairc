@@ -45,6 +45,7 @@ depend: .depend
 include .depend
 
 test: $(LIB) $(TESTS)
+	@$(foreach test_exec,$(TESTS),./$(test_exec);)
 
 %.out: %.c
 	$(CC) $(CFLAGS) $< $(DEFS) $(INCLUDES) $(LIBS) -o $@ $(LIB) 

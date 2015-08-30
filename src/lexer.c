@@ -62,6 +62,36 @@ int yi_lex_letter(yi_buffer_t* buf)
   return 1;
 }
 
+int yi_lex_hostname(yi_buffer_t* buf)
+{
+  return 1;
+}
+
+// ({letter}|{digit})(letter|digit|'-')*(letter|digit)*
+int yi_lex_shortname(yi_buffer_t* buf)
+{
+  char const * peek = buf->la;
+
+  // alteranation
+  if (!(isdigit(*peek) || isalpha(*peek)))
+    return 0;
+
+  peek++;
+
+  // kleene-star
+  while (isdigit(*peek) || isalpha(*peek) || *peek == '-')
+    peek++;
+  while (isdigit(*peek) || isalpha(*peek))
+    peek++;
+
+  buf->token->len = peek - buf->la;
+  buf->token->type = YI_T_SHORTNAME;
+  memcpy(buf->token->buf, buf->la, buf->token->len);
+  buf->la = peek;
+
+  return 1;
+}
+
 int yi_lex_single_terminal(yi_buffer_t* buf, char c)
 {
   if (*buf->la != c)
@@ -83,6 +113,7 @@ int yi_lex_terminal(yi_buffer_t* buf, char* terminal, unsigned size)
     return 0;
 
   buf->token->type = YI_T_TERMINAL;
+  buf->token->len = size;
   memcpy(buf->token->buf, terminal, size);
   buf->la += size;
 
