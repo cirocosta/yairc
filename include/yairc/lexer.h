@@ -2,10 +2,9 @@
 #define YI__LEXER_H
 
 #include "yairc/common.h"
+#include "yairc/_is.h"
 
-#include <ctype.h>
 #include <stdlib.h>
-#include <string.h>
 
 #define YI_MAXBUFSIZE 512 + 1
 
@@ -39,25 +38,6 @@ void yi_buffer_destroy(yi_buffer_t* buf);
 void yi_buffer_init(yi_buffer_t* buf, const char* str, size_t buf_len);
 void yi_buffer_destroy(yi_buffer_t* buf);
 
-static inline int _in_range(char value, char begin, char end)
-{
-  return value >= begin && value < end;
-}
-
-// call it with: _any_except((char[]){v1,v2,...vn}, n);
-static inline int _any_except(char val, char* exceptions, unsigned size)
-{
-  while (size-- > 0)
-    if (val == exceptions[size])
-      return 0;
-
-  return 1;
-}
-
-char const* _is_ip4addr(char const* peek);
-char const* _is_ip6addr(char const* peek);
-
-int yi_lex(yi_buffer_t* buf);
 int yi_lex_shortname(yi_buffer_t* buf);
 int yi_lex_hostname(yi_buffer_t* buf);
 int yi_lex_space(yi_buffer_t* buf);
