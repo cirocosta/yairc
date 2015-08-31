@@ -40,7 +40,10 @@ void test2()
       ":levin.mozilla.org 376 guest :End of message of the day.\r\n"
       ":levin.mozilla.org 251 guest :There are 2687 users online.\r\n"
       ":levin.mozilla.org 252 guest 8 :operator(s) online\r\n";
-  (void)msg;
+
+  yi_buffer_t* buf = yi_buffer_create(msg, strlen(msg));
+
+  yi_buffer_destroy(buf);
 }
 
 void test3()
@@ -48,21 +51,40 @@ void test3()
   const char* msg =
       ":levin.mozilla.org NOTICE Auth :*** Looking up your hostname...\r\n"
       ":levin.mozilla.org NOTICE Auth :Welcome to Mozilla!\r\n";
-  (void)msg;
+
+  yi_buffer_t* buf = yi_buffer_create(msg, strlen(msg));
+
+  yi_buffer_destroy(buf);
+}
+
+void test4_0()
+{
+  unsigned i = 4;
+  char* msg[] = { "123.123.123.12", "255.255.255.255", "127.0.0.1",
+                  "10.10.10.10" };
+  while (i-- > 0) {
+    ASSERT(_is_ip4addr(msg[i]), "%s is an ip4addr", msg[i]);
+  }
 }
 
 void test4()
 {
   const char* msg = "ERROR :Closing link: (guest@123.123.123.12) [Ping "
                     "timeout: 121 seconds]\r\n";
-  (void)msg;
+
+  yi_buffer_t* buf = yi_buffer_create(msg, strlen(msg));
+
+  yi_buffer_destroy(buf);
 }
 
 void test5()
 {
   const char* msg = ":NickServ!services@ircservices.mozilla.org NOTICE guest "
                     ":please choose a different nick.\r\n";
-  (void)msg;
+
+  yi_buffer_t* buf = yi_buffer_create(msg, strlen(msg));
+
+  yi_buffer_destroy(buf);
 }
 
 int main(int argc, char* argv[])
@@ -70,6 +92,7 @@ int main(int argc, char* argv[])
   TEST(test1);
   TEST(test2);
   TEST(test3);
+  TEST(test4_0);
   TEST(test4);
   TEST(test5);
 

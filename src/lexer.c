@@ -1,17 +1,6 @@
 #include "yairc/lexer.h"
 
 // TODO
-//  create _is_TOKENIZATION_NAME() functions so that we don't rely on
-//  true lexer procedures when verifying if a given string matches
-//  the rule we want (i.e, avoid the cost of preparing the token and
-//  stuff)
-//
-//  `is_` methods would just rely on another `is_` methods.
-//
-//  `yi_lex_` methods would be only "syntatic sugar" that prepares a token
-//  as output from the matching.
-//
-// TODO
 //  play around w/ `alternate`, `concatenate` and `kleene-star` methods
 
 yi_buffer_t* yi_buffer_create(const char* str, size_t buf_len)
@@ -49,10 +38,10 @@ static inline char const* _is_single_terminal(char const* la, char c)
 
 static inline char const* _is_digit(char const* la)
 {
-  if (!yi_in_range(*la, 0x30, 0x39))
+  if (!_in_range(*la, 0x30, 0x39))
     return NULL;
 
-  return la+1;
+  return la + 1;
 }
 
 static char const* _is_shortname(char const* peek)
@@ -82,7 +71,7 @@ static char const* _is_hostname(char const* peek)
   tmp_peek = peek;
 
   // kleene-star
-  while (1) {
+  while (*peek) {
     // concatenation
     if ((tmp_peek = _is_single_terminal(tmp_peek, '.')) &&
         (tmp_peek = _is_shortname(tmp_peek))) {
@@ -100,7 +89,76 @@ static char const* _is_terminal(char const* peek, char* terminal, unsigned size)
   if (strncmp(peek, terminal, size))
     return NULL;
 
-  return peek+size;
+  return peek + size;
+}
+
+// nickname = (letter|special) *8(letter|digit|special|"-")
+// (letter|special) --reduce--> [0x41-0x7D]
+// so: [0x41-0x7D]*8([0x41-0x7D]|digit|"-")
+static char const* _is_nickname(char const* peek)
+{
+  unsigned max_it = 8;
+
+  if (!_in_range(*peek, 0x41, 0x7D))
+    return NULL;
+  peek++;
+
+  while (max_it-- > 0) {
+    if (_in_range(*peek, 0x41, 0x7D) || isdigit(*peek) || *peek == '-')
+      peek++;
+    else
+      break;
+  }
+
+  return peek;
+}
+
+// 1*( %x01-09 / %x0B-0C / %x0E-1F / %x21-3F / %x41-FF ) reduces to
+// 1*[^\r\n @\0]
+static char const* _is_user(char const* peek)
+{
+  if (!_any_except(*peek, "\r\n @\0", 5)) {
+    return NULL;
+  }
+
+  while (*peek) {
+    if (!_any_except(*peek, "\r\n @\0", 5))
+      break;
+  }
+
+  return peek;
+}
+
+char const* _is_ip4addr(char const* peek)
+{
+  unsigned i = 3;
+  unsigned j = 2;
+
+  while (i-- > 0) {
+    if (!isdigit(*peek++))
+      return NULL;
+
+    while (j-- > 0) {
+      if (!isdigit(*peek))
+        break;
+      peek++;
+    }
+
+    if (*peek == '.')
+      peek++;
+    j = 2;
+  }
+
+  if (!isdigit(*peek++))
+    return NULL;
+
+  while (j-- > 0) {
+    if (!isdigit(*peek))
+      break;
+    peek++;
+  }
+
+  return peek;
 }
 
 int yi_lex_space(yi_buffer_t* buf)
@@ -127,7 +185,7 @@ int yi_lex_crlf(yi_buffer_t* buf)
 
 int yi_lex_letter(yi_buffer_t* buf)
 {
-  if (!(yi_in_range(*buf->la, 0x51, 0x5A) || yi_in_range(*buf->la, 0x61, 0x7A)))
+  if (!(_in_range(*buf->la, 0x51, 0x5A) || _in_range(*buf->la, 0x61, 0x7A)))
     return 0;
 
   buf->la++;

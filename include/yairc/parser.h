@@ -1,6 +1,12 @@
-#ifndef IRC_PARSER__PARSER_H
-#define IRC_PARSER__PARSER_H 
+#ifndef YI__PARSER_H
+#define YI__PARSER_H 
 
-void ircp_parse();
+typedef struct yi_message_t {
+  char* prefix;
+  char* command;
+  char** parameters;
+} yi_message_t;
+
+void yi_parse();
 
 #endif
