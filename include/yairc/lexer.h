@@ -9,14 +9,14 @@
 #define YI_MAXBUFSIZE 512 + 1
 
 typedef enum yi_token_type_e {
-  YI_T_LETTER = 1,
-  YI_T_DIGIT,
-  YI_T_CRLF,
-  YI_T_SPACE,
+  YI_T_SINGLE_TERMINAL = 1,
   YI_T_TERMINAL,
-  YI_T_SINGLE_TERMINAL,
-  YI_T_SHORTNAME,
-  YI_T_HOSTNAME
+  YI_T_HOSTNAME,
+  YI_T_HOST,
+  YI_T_USER,
+  YI_T_COMMAND,
+  YI_T_NICKNAME,
+  YI_T_PARAMS,
 } yi_token_type_e;
 
 typedef struct yi_token_t {
@@ -38,13 +38,13 @@ void yi_buffer_destroy(yi_buffer_t* buf);
 void yi_buffer_init(yi_buffer_t* buf, const char* str, size_t buf_len);
 void yi_buffer_destroy(yi_buffer_t* buf);
 
-int yi_lex_shortname(yi_buffer_t* buf);
-int yi_lex_hostname(yi_buffer_t* buf);
-int yi_lex_space(yi_buffer_t* buf);
-int yi_lex_crlf(yi_buffer_t* buf);
-int yi_lex_letter(yi_buffer_t* buf);
 int yi_lex_single_terminal(yi_buffer_t* buf, char c);
 int yi_lex_terminal(yi_buffer_t* buf, char* terminal, unsigned size);
-int yi_lex_digit(yi_buffer_t* buf);
+int yi_lex_hostname(yi_buffer_t* buf);
+int yi_lex_host(yi_buffer_t* buf);
+int yi_lex_user(yi_buffer_t* buf);
+int yi_lex_command(yi_buffer_t* buf);
+int yi_lex_nickname(yi_buffer_t* buf);
+int yi_lex_params(yi_buffer_t* buf);
 
 #endif

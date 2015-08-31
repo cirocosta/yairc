@@ -15,9 +15,10 @@ void test1()
   ASSERT(buf->token->type == YI_T_TERMINAL, "");
   STRNCMP(buf->token->buf, "PING");
 
+
   // " "
-  ASSERT(yi_lex_space(buf), "tokenize terminal space");
-  ASSERT(buf->token->type == YI_T_SPACE, "");
+  ASSERT(yi_lex_single_terminal(buf, ' '), "tokenize terminal space");
+  ASSERT(buf->token->type == YI_T_SINGLE_TERMINAL, "");
 
   ASSERT(yi_lex_single_terminal(buf, ':'), "tokenize terminal space");
   ASSERT(buf->token->type == YI_T_SINGLE_TERMINAL, "");
@@ -28,8 +29,8 @@ void test1()
   STRNCMP(buf->token->buf, "levin.mozilla.org");
 
   // {CRLF}
-  ASSERT(yi_lex_crlf(buf), "tokenize crlf");
-  ASSERT(buf->token->type == YI_T_CRLF, "");
+  ASSERT(yi_lex_terminal(buf, "\r\n", 2), "tokenize crlf");
+  ASSERT(buf->token->type == YI_T_TERMINAL, "");
 
   yi_buffer_destroy(buf);
 }
