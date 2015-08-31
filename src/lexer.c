@@ -47,10 +47,16 @@ static inline char const* _is_single_terminal(char const* la, char c)
   return *la == c ? ++la : NULL;
 }
 
-static char const* _is_shortname(char const* la)
+static inline char const* _is_digit(char const* la)
 {
-  char const* peek = la;
+  if (!yi_in_range(*la, 0x30, 0x39))
+    return NULL;
 
+  return la+1;
+}
+
+static char const* _is_shortname(char const* peek)
+{
   // alteranation
   if (!(isdigit(*peek) || isalpha(*peek)))
     return NULL;
@@ -58,17 +64,16 @@ static char const* _is_shortname(char const* la)
   peek++;
 
   // kleene-star
-  while (isdigit(*peek) || isalpha(*peek) || *peek == '-')
+  while (isalpha(*peek) || isdigit(*peek) || *peek == '-')
     peek++;
-  while (isdigit(*peek) || isalpha(*peek))
+  while (isalpha(*peek) || isdigit(*peek))
     peek++;
 
   return peek;
 }
 
-static char const* _is_hostname(char const* la)
+static char const* _is_hostname(char const* peek)
 {
-  char const* peek = la;
   char const* tmp_peek;
 
   if (!(peek = _is_shortname(peek)))
@@ -88,6 +93,14 @@ static char const* _is_hostname(char const* la)
   }
 
   return peek;
+}
+
+static char const* _is_terminal(char const* peek, char* terminal, unsigned size)
+{
+  if (strncmp(peek, terminal, size))
+    return NULL;
+
+  return peek+size;
 }
 
 int yi_lex_space(yi_buffer_t* buf)
@@ -158,12 +171,15 @@ int yi_lex_shortname(yi_buffer_t* buf)
 
 int yi_lex_single_terminal(yi_buffer_t* buf, char c)
 {
-  if (*buf->la != c)
+  char const* peek;
+
+  if (!(peek = _is_single_terminal(buf->la, c)))
     return 0;
 
-  buf->token->buf[0] = c;
-  buf->la++;
   buf->token->type = YI_T_SINGLE_TERMINAL;
+  buf->token->len = 1;
+  buf->token->buf[0] = c;
+  buf->la = peek;
 
   return 1;
 }
@@ -173,25 +189,30 @@ int yi_lex_terminal(yi_buffer_t* buf, char* terminal, unsigned size)
   // TODO this is actually unsafe. We should keep track of buffer position so
   //      that before perming this we'd known wheter if is bigger or not than
   //      the buffer. (e.g: `assert(buf->pos + size < buf->size)`)
-  if (strncmp(buf->la, terminal, size))
+  char const* peek;
+
+  if (!(peek = _is_terminal(buf->la, terminal, size)))
     return 0;
 
   buf->token->type = YI_T_TERMINAL;
   buf->token->len = size;
   memcpy(buf->token->buf, terminal, size);
-  buf->la += size;
+  buf->la = peek;
 
   return 1;
 }
 
 int yi_lex_digit(yi_buffer_t* buf)
 {
-  if (!yi_in_range(*buf->la, 0x30, 0x39))
+  char const* peek;
+
+  if (!(peek = _is_digit(buf->la)))
     return 0;
 
-  buf->la++;
-  buf->token->type = YI_T_DIGIT;
-  buf->token->buf[0] = *buf->la;
+  buf->token->type = YI_T_SINGLE_TERMINAL;
+  buf->token->len = 1;
+  buf->token->buf[0] = *peek;
+  buf->la = peek;
 
   return 1;
 }
