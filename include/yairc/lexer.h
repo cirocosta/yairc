@@ -55,6 +55,7 @@ static inline int _any_except(char val, char* exceptions, unsigned size)
 }
 
 char const* _is_ip4addr(char const* peek);
+char const* _is_ip6addr(char const* peek);
 
 int yi_lex(yi_buffer_t* buf);
 int yi_lex_shortname(yi_buffer_t* buf);

@@ -129,6 +129,64 @@ static char const* _is_user(char const* peek)
   return peek;
 }
 
+// 1*letter / 3digit
+static char const* _is_command(char const* peek)
+{
+  unsigned i;
+
+  if (isdigit(*peek)) {
+    i = 2;
+    peek++;
+
+    while (i-- > 0)
+      if (!isdigit(*peek++))
+        return NULL;
+    return peek;
+  }
+
+  if (!isalpha(*peek++))
+    return NULL;
+
+  while (*peek)
+    if (!isalpha(*peek++))
+      break;
+
+  return peek;
+}
+
+// TODO include the ip6+ip4 addr type
+char const* _is_ip6addr(char const* peek)
+{
+  unsigned i;
+
+  if (!isxdigit(*peek++))
+    return NULL;
+
+  while (*peek) {
+    if (!isxdigit(*peek))
+      break;
+    peek++;
+  }
+
+  i = 7;
+
+  while (i-- > 0) {
+    if (*peek++ != ':')
+      return NULL;
+
+    if (!isxdigit(*peek++))
+      return NULL;
+
+    while (*peek) {
+      if (!isxdigit(*peek))
+        break;
+      peek++;
+    }
+  }
+
+  return peek;
+}
+
 char const* _is_ip4addr(char const* peek)
 {
   unsigned i = 3;
