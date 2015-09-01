@@ -5,8 +5,8 @@ yi_buffer_t* yi_buffer_create(const char* str, size_t buf_len)
   yi_buffer_t* buf = malloc(sizeof(*buf));
   yi_token_t* token = malloc(sizeof(*token));
 
-  PASSERT(buf, "yi_buffer_new:");
-  PASSERT(token, "yi_buffer_new:");
+  PASSERT(buf, "yi_buffer_create:");
+  PASSERT(token, "yi_buffer_create:");
 
   buf->token = token;
   yi_buffer_init(buf, str, buf_len);
@@ -34,6 +34,7 @@ inline static void yi_buffer_update(yi_buffer_t* buf, char const* peek,
   buf->token->type = type;
   buf->token->len = peek - buf->la;
   memcpy(buf->token->buf, buf->la, buf->token->len);
+  buf->token->buf[buf->token->len] = '\0';
   buf->la = peek;
 }
 
@@ -100,9 +101,9 @@ int yi_lex_user(yi_buffer_t* buf)
 
 int yi_lex_command(yi_buffer_t* buf)
 {
-  char const* peek;
+  char const* peek = buf->la;
 
-  if (!(peek = _is_command(buf->la)))
+  if (!(peek = _is_command(peek)))
     return 0;
 
   yi_buffer_update(buf, peek, YI_T_COMMAND);
@@ -125,18 +126,23 @@ int yi_lex_nickname(yi_buffer_t* buf)
 int yi_lex_params(yi_buffer_t* buf)
 {
   char const* peek = buf->la;
+  char const* tmp = peek;
   unsigned remaining_middle_params = 14;
 
   while (remaining_middle_params-- > 0) {
-    if (!(peek = _is_single_terminal(peek, ' ')) &&
-        !(peek = _is_middle(peek)))
+    if (!(tmp = _is_single_terminal(peek, ' ')))
       break;
+    if (!(tmp = _is_middle(tmp)))
+      break;
+    peek = tmp;
   }
 
   if ((peek = _is_terminal(peek, " :", 2))) {
     if (!(peek = _is_trailing(peek)))
       return 0;
   }
+
+  yi_buffer_update(buf, peek, YI_T_COMMAND);
 
   return 1;
 }
