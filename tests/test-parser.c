@@ -22,7 +22,6 @@ void test2()
       ":levin.mozilla.org 376 guest :End of message of the day.\r\n";
   yi_message_t* message = yi_parse(msg, strlen(msg));
 
-  ASSERT(strlen(message->prefix) > 0, "Has a prefix");
   STRNCMP(message->prefix, "levin.mozilla.org");
 
   ASSERT(strlen(message->command) > 0, "Has a command");

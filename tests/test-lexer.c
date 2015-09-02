@@ -14,7 +14,7 @@ void test1()
   ASSERT(buf->token->type == YI_T_COMMAND, "must use correct token type");
   STRNCMP(buf->token->buf, "PING");
 
-  // "parameters[0] = levin.mozilla.org  
+  // "parameters[0] = levin.mozilla.org
   ASSERT(yi_lex_param_trailing(buf), "find out that it's a trailing parameter");
   ASSERT(buf->token->type == YI_T_PARAM, "use the correct token type");
   STRNCMP(buf->token->buf, "levin.mozilla.org");
@@ -33,7 +33,7 @@ void test2()
 
   yi_buffer_t* buf = yi_buffer_create(msg, strlen(msg));
 
-  // prefix = levin.mozilla.org 
+  // prefix = levin.mozilla.org
   ASSERT(yi_lex_single_terminal(buf, ':'), "");
   ASSERT(yi_lex_prefix_hostname(buf), "");
   ASSERT(buf->token->type == YI_T_PREFIX, "");
@@ -61,22 +61,37 @@ void test2()
 void test3()
 {
   const char* msg =
-      ":levin.mozilla.org NOTICE Auth :*** Looking up your hostname...\r\n"
-      ":levin.mozilla.org NOTICE Auth :Welcome to Mozilla!\r\n";
+      ":levin.mozilla.org NOTICE Auth :*** Looking up your hostname...\r\n";
 
   yi_buffer_t* buf = yi_buffer_create(msg, strlen(msg));
 
-  yi_buffer_destroy(buf);
-}
+  // prefix = levin.mozilla.org
+  ASSERT(yi_lex_single_terminal(buf, ':'), "");
+  ASSERT(yi_lex_prefix_hostname(buf), "");
+  ASSERT(buf->token->type == YI_T_PREFIX, "");
+  STRNCMP(buf->token->buf, "levin.mozilla.org");
+  ASSERT(yi_lex_single_terminal(buf, ' '), "");
 
-void test4_0()
-{
-  unsigned i = 4;
-  char* msg[] = { "123.123.123.12", "255.255.255.255", "127.0.0.1",
-                  "10.10.10.10" };
-  while (i-- > 0) {
-    ASSERT(_is_ip4addr(msg[i]), "%s is an ip4addr", msg[i]);
-  }
+  // textual command
+  ASSERT(yi_lex_command(buf), "");
+  ASSERT(buf->token->type == YI_T_COMMAND, "");
+  STRNCMP(buf->token->buf, "NOTICE");
+
+  // parameter
+  ASSERT(yi_lex_param_middle(buf), "");
+  ASSERT(buf->token->type == YI_T_PARAM, "");
+  STRNCMP(buf->token->buf, "Auth");
+
+  // parameter
+  ASSERT(yi_lex_param_trailing(buf), "");
+  ASSERT(buf->token->type == YI_T_PARAM, "");
+  STRNCMP(buf->token->buf, "*** Looking up your hostname...");
+
+  // crlf
+  ASSERT(yi_lex_terminal(buf, "\r\n", 2), "tokenize crlf");
+  ASSERT(buf->token->type == YI_T_TERMINAL, "it's a terminal!");
+
+  yi_buffer_destroy(buf);
 }
 
 void test4()
@@ -85,6 +100,21 @@ void test4()
                     "timeout: 121 seconds]\r\n";
 
   yi_buffer_t* buf = yi_buffer_create(msg, strlen(msg));
+
+  // textual command
+  ASSERT(yi_lex_command(buf), "");
+  ASSERT(buf->token->type == YI_T_COMMAND, "");
+  STRNCMP(buf->token->buf, "ERROR");
+
+  // trailing parameter w/ space and colon
+  ASSERT(yi_lex_param_trailing(buf), "");
+  ASSERT(buf->token->type == YI_T_PARAM, "");
+  STRNCMP(buf->token->buf,
+          "Closing link: (guest@123.123.123.12) [Ping timeout: 121 seconds]");
+
+  // crlf
+  ASSERT(yi_lex_terminal(buf, "\r\n", 2), "tokenize crlf");
+  ASSERT(buf->token->type == YI_T_TERMINAL, "it's a terminal!");
 
   yi_buffer_destroy(buf);
 }
@@ -96,6 +126,32 @@ void test5()
 
   yi_buffer_t* buf = yi_buffer_create(msg, strlen(msg));
 
+  // nicknamed prefix
+  ASSERT(yi_lex_single_terminal(buf, ':'), "");
+  ASSERT(yi_lex_prefix_nickname(buf), "");
+  ASSERT(buf->token->type == YI_T_PREFIX, "");
+  STRNCMP(buf->token->buf, "NickServ!services@ircservices.mozilla.org");
+  ASSERT(yi_lex_single_terminal(buf, ' '), "");
+
+  // textual command
+  ASSERT(yi_lex_command(buf), "");
+  ASSERT(buf->token->type == YI_T_COMMAND, "");
+  STRNCMP(buf->token->buf, "NOTICE");
+
+  // parameter
+  ASSERT(yi_lex_param_middle(buf), "");
+  ASSERT(buf->token->type == YI_T_PARAM, "");
+  STRNCMP(buf->token->buf, "guest");
+
+  // parameter
+  ASSERT(yi_lex_param_trailing(buf), "");
+  ASSERT(buf->token->type == YI_T_PARAM, "");
+  STRNCMP(buf->token->buf, "please choose a different nick.");
+
+  // crlf
+  ASSERT(yi_lex_terminal(buf, "\r\n", 2), "tokenize crlf");
+  ASSERT(buf->token->type == YI_T_TERMINAL, "it's a terminal!");
+
   yi_buffer_destroy(buf);
 }
 
@@ -104,7 +160,6 @@ int main(int argc, char* argv[])
   TEST(test1);
   TEST(test2);
   TEST(test3);
-  TEST(test4_0);
   TEST(test4);
   TEST(test5);
 

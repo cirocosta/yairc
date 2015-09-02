@@ -112,13 +112,13 @@ inline static char const* _is_nickname(char const* peek)
 // 1*[^\r\n @\0]
 inline static char const* _is_user(char const* peek)
 {
-  if (!_any_except(*peek, "\r\n @\0", 5)) {
+  if (!_any_except(*peek, "\r\n @\0", 5)) 
     return NULL;
-  }
 
   while (*peek) {
     if (!_any_except(*peek, "\r\n @\0", 5))
       break;
+    peek++;
   }
 
   return peek;

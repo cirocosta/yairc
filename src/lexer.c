@@ -91,6 +91,7 @@ int yi_lex_prefix_nickname(yi_buffer_t* buf)
       return 0;
     if (!(tmp = _is_host(tmp)))
       return 0;
+    peek = tmp;
   } 
   
   else if ((tmp = _is_single_terminal(tmp, '@'))) {

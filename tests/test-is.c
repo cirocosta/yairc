@@ -24,7 +24,17 @@ void test3()
   ASSERT(_is_trailing(msg), "");
 }
 
-void test6()
+void test4()
+{
+  unsigned i = 4;
+  char* msg[] = { "123.123.123.12", "255.255.255.255", "127.0.0.1",
+                  "10.10.10.10" };
+  while (i-- > 0) {
+    ASSERT(_is_ip4addr(msg[i]), "%s is an ip4addr", msg[i]);
+  }
+}
+
+void test5()
 {
   unsigned i = 2;
   char* msg[] = { "FE80:0000:0000:0000:0202:B3FF:FE1E:8329", 
@@ -40,6 +50,8 @@ int main(int argc, char *argv[])
   TEST(test1, "_is_middle");
   TEST(test2, "_is_nospcrlfcl");
   TEST(test3, "_is_trailing");
+  TEST(test4, "_is_trailing");
+  TEST(test5, "_is_trailing");
   
   return 0;
 }
