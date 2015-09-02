@@ -16,7 +16,7 @@ typedef enum yi_token_type_e {
   YI_T_USER,
   YI_T_COMMAND,
   YI_T_NICKNAME,
-  YI_T_PARAMS,
+  YI_T_PARAM,
 } yi_token_type_e;
 
 typedef struct yi_token_t {
@@ -35,7 +35,7 @@ typedef struct yi_buffer_t {
 
 yi_buffer_t* yi_buffer_create(const char* str, size_t buf_len);
 void yi_buffer_destroy(yi_buffer_t* buf);
-void yi_buffer_init(yi_buffer_t* buf, const char* str, size_t buf_len);
+void yi_buffer_reset(yi_buffer_t* buf, const char* str, size_t buf_len);
 void yi_buffer_destroy(yi_buffer_t* buf);
 
 int yi_lex_single_terminal(yi_buffer_t* buf, char c);
@@ -45,6 +45,7 @@ int yi_lex_host(yi_buffer_t* buf);
 int yi_lex_user(yi_buffer_t* buf);
 int yi_lex_command(yi_buffer_t* buf);
 int yi_lex_nickname(yi_buffer_t* buf);
-int yi_lex_params(yi_buffer_t* buf);
+int yi_lex_param_middle(yi_buffer_t* buf);
+int yi_lex_param_trailing(yi_buffer_t* buf);
 
 #endif

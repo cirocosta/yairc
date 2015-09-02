@@ -4,83 +4,113 @@
 #include "yairc/lexer.h"
 
 typedef struct yi_message_t {
-  char* prefix;
-  char* command;
-  char** parameters;
+  yi_buffer_t* buf;
+
+  char prefix[513];
+  char command[513];
+  char parameters[15][513]; // TODO wow!
 } yi_message_t;
 
-inline static void _MESSAGE(yi_buffer_t* buf);
-inline static void _PREFIX(yi_buffer_t* buf);
-inline static void _COMMAND(yi_buffer_t* buf);
-inline static void _PARAMETERS(yi_buffer_t* buf);
+inline static void _MESSAGE(yi_message_t* message);
+inline static void _PREFIX(yi_message_t* message);
+inline static void _COMMAND(yi_message_t* message);
+inline static void _PARAMETERS(yi_message_t* message);
 
-yi_message_t* yi_message_create()
+yi_message_t* yi_message_create(const char* msg, unsigned msg_size)
 {
+  unsigned i = 0;
+
   yi_message_t* message = malloc(sizeof(*message));
   PASSERT(message, "yi_message_create:");
+
+  message->buf = yi_buffer_create(msg, msg_size);
+
+  message->prefix[0] = '\0';
+  message->command[0] = '\0';
+  while (i < 15)
+    message->parameters[i++][0] = '\0';
 
   return message;
 }
 
+void yi_message_reset(yi_message_t* message, const char* msg, unsigned msg_size)
+{
+  unsigned i = 0;
+
+  yi_buffer_reset(message->buf, msg, msg_size);
+
+  message->prefix[0] = '\0';
+  message->command[0] = '\0';
+  while (i < 15)
+    message->parameters[i++][0] = '\0';
+}
+
 void yi_message_destroy(yi_message_t* message)
 {
+  yi_buffer_destroy(message->buf);
   FREE(message);
 }
 
 yi_message_t* yi_parse(const char* msg, unsigned msg_size)
 {
-  yi_message_t* message = yi_message_create();
-  yi_buffer_t* buf = yi_buffer_create(msg, msg_size);
+  yi_message_t* message = yi_message_create(msg, msg_size);
 
-  _MESSAGE(buf);
-
-  yi_buffer_destroy(buf);
+  _MESSAGE(message);
 
   return message;
 }
 
-inline static void _MESSAGE(yi_buffer_t* buf)
+inline static void _MESSAGE(yi_message_t* message)
 {
-  if (yi_lex_single_terminal(buf, ':')) {
-    _PREFIX(buf); // opt
-    yi_lex_single_terminal(buf, ' ');
-    LOG("prefix: %s", buf->token->buf);
+  if (yi_lex_single_terminal(message->buf, ':')) {
+    _PREFIX(message); // opt
+    yi_lex_single_terminal(message->buf, ' ');
+    LOG("prefix: %s", message->buf->token->buf);
   }
 
-  _COMMAND(buf);
-  LOG("command: %s", buf->token->buf);
-  _PARAMETERS(buf);
-  LOG("params: %s", buf->token->buf);
-  yi_lex_terminal(buf, "\r\n", 2);
+  _COMMAND(message);
+  _PARAMETERS(message);
+  yi_lex_terminal(message->buf, "\r\n", 2);
 }
 
-inline static void _PREFIX(yi_buffer_t* buf)
+inline static void _PREFIX(yi_message_t* message)
 {
-  if (yi_lex_hostname(buf))
+  if (yi_lex_hostname(message->buf))
     return;
 
-  if (!yi_lex_nickname(buf))
+  if (!yi_lex_nickname(message->buf))
     exit(1); // err
 
-  if (yi_lex_single_terminal(buf, '!')) {
-    yi_lex_user(buf);
-    yi_lex_single_terminal(buf, '@');
-    yi_lex_host(buf);
-  } else if (yi_lex_single_terminal(buf, '@')) {
-    yi_lex_host(buf);
+  if (yi_lex_single_terminal(message->buf, '!')) {
+    yi_lex_user(message->buf);
+    yi_lex_single_terminal(message->buf, '@');
+    yi_lex_host(message->buf);
+  } else if (yi_lex_single_terminal(message->buf, '@')) {
+    yi_lex_host(message->buf);
+  }
+}
+
+inline static void _COMMAND(yi_message_t* message)
+{
+  yi_lex_command(message->buf);
+  strncpy(message->command, message->buf->token->buf, message->buf->token->len);
+}
+
+inline static void _PARAMETERS(yi_message_t* message)
+{
+  unsigned i = 0;
+
+  while (i < 14) {
+    if (!yi_lex_param_middle(message->buf))
+      break;
+    strncpy(message->parameters[i++], message->buf->token->buf,
+            message->buf->token->len);
   }
 
-}
-
-inline static void _COMMAND(yi_buffer_t* buf)
-{
-  yi_lex_command(buf);
-}
-
-inline static void _PARAMETERS(yi_buffer_t* buf)
-{
-  if (!yi_lex_params(buf))
-    LOGERR("_PARAMETERS");
+  if (yi_lex_param_trailing(message->buf)) {
+    strncpy(message->parameters[i], message->buf->token->buf,
+            message->buf->token->len);
+  }
 }
 
 #endif

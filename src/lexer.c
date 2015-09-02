@@ -9,12 +9,12 @@ yi_buffer_t* yi_buffer_create(const char* str, size_t buf_len)
   PASSERT(token, "yi_buffer_create:");
 
   buf->token = token;
-  yi_buffer_init(buf, str, buf_len);
+  yi_buffer_reset(buf, str, buf_len);
 
   return buf;
 }
 
-void yi_buffer_init(yi_buffer_t* buf, const char* str, size_t buf_len)
+void yi_buffer_reset(yi_buffer_t* buf, const char* str, size_t buf_len)
 {
   buf->buf = str;
   buf->la = buf->buf;
@@ -123,6 +123,40 @@ int yi_lex_nickname(yi_buffer_t* buf)
   return 1;
 }
 
+// " "{middle}
+int yi_lex_param_middle(yi_buffer_t* buf)
+{
+  char const* peek = buf->la;
+
+  if (!(peek = _is_single_terminal(peek, ' ')))
+    return 0;
+
+  if (!(peek = _is_middle(peek)))
+    return 0;
+
+  yi_buffer_update(buf, peek, YI_T_PARAM);
+
+  return 1;
+}
+
+// " :"{trailing}
+int yi_lex_param_trailing(yi_buffer_t* buf)
+{
+  char const* peek = buf->la;
+
+  if (!(peek = _is_terminal(peek, " :", 2)))
+    return 0;
+
+  if (!(peek = _is_trailing(peek)))
+    return 0;
+
+  buf->la += 1;
+  yi_buffer_update(buf, peek, YI_T_PARAM);
+
+  return 1;
+}
+
+#if 0
 int yi_lex_params(yi_buffer_t* buf)
 {
   char const* peek = buf->la;
@@ -146,3 +180,4 @@ int yi_lex_params(yi_buffer_t* buf)
 
   return 1;
 }
+#endif

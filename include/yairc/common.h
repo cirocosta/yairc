@@ -44,7 +44,7 @@
   } while (0)
 
 #define STRNCMP(__a, __b)                                                      \
-  ASSERT(!strncmp(__a, __b, strlen(__b)), "%s != %s", __a, __b)
+  ASSERT(!strncmp(__a, __b, strlen(__b)), "`%s` != `%s`", __a, __b)
 
 #define PASSERT(condition, message, ...)                                       \
   do {                                                                         \
@@ -57,8 +57,11 @@
 
 #define TEST(__test, ...)                                                      \
   do {                                                                         \
+    LOG("%s: %s:" #__VA_ARGS__ " RUNNING!", __BASE_FILE__, #__test);           \
+    fflush(stdout);                                                            \
     __test();                                                                  \
-    LOG("%s: %s:" #__VA_ARGS__ " OK!", __BASE_FILE__, #__test);                \
+    LOG("\t%s: %s:" #__VA_ARGS__ " OK!", __BASE_FILE__, #__test);              \
+    fflush(stdout);                                                            \
   } while (0)
 
 #endif // ! YAIRC__COMMON_H

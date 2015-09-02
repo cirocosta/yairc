@@ -24,6 +24,17 @@ void test3()
   ASSERT(_is_trailing(msg), "");
 }
 
+void test6()
+{
+  unsigned i = 2;
+  char* msg[] = { "FE80:0000:0000:0000:0202:B3FF:FE1E:8329", 
+                  "2001:05c0:1000:000b:0000:0000:0000:5c24"
+  };
+  while (i-- > 0) {
+    ASSERT(_is_ip6addr(msg[i]), "%s is an ip6addr", msg[i]);
+  }
+}
+
 int main(int argc, char *argv[])
 {
   TEST(test1, "_is_middle");
