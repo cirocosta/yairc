@@ -129,29 +129,3 @@ int yi_lex_param_trailing(yi_buffer_t* buf)
 
   return 1;
 }
-
-#if 0
-int yi_lex_params(yi_buffer_t* buf)
-{
-  char const* peek = buf->la;
-  char const* tmp = peek;
-  unsigned remaining_middle_params = 14;
-
-  while (remaining_middle_params-- > 0) {
-    if (!(tmp = _is_single_terminal(peek, ' ')))
-      break;
-    if (!(tmp = _is_middle(tmp)))
-      break;
-    peek = tmp;
-  }
-
-  if ((peek = _is_terminal(peek, " :", 2))) {
-    if (!(peek = _is_trailing(peek)))
-      return 0;
-  }
-
-  yi_buffer_update(buf, peek, YI_T_COMMAND);
-
-  return 1;
-}
-#endif
