@@ -62,12 +62,7 @@ yi_message_t* yi_parse(const char* msg, unsigned msg_size)
 
 inline static void _MESSAGE(yi_message_t* message)
 {
-  if (yi_lex_single_terminal(message->buf, ':')) {
-    _PREFIX(message); // opt
-    yi_lex_single_terminal(message->buf, ' ');
-    LOG("prefix: %s", message->buf->token->buf);
-  }
-
+  _PREFIX(message);
   _COMMAND(message);
   _PARAMETERS(message);
   yi_lex_terminal(message->buf, "\r\n", 2);
@@ -75,6 +70,9 @@ inline static void _MESSAGE(yi_message_t* message)
 
 inline static void _PREFIX(yi_message_t* message)
 {
+  if (!yi_lex_single_terminal(message->buf, ':'))
+    return;
+
   if (yi_lex_prefix_hostname(message->buf)) {
     strncpy(message->prefix, message->buf->token->buf,
             message->buf->token->len);
@@ -82,6 +80,8 @@ inline static void _PREFIX(yi_message_t* message)
     strncpy(message->prefix, message->buf->token->buf,
             message->buf->token->len);
   }
+
+  yi_lex_single_terminal(message->buf, ' ');
 }
 
 inline static void _COMMAND(yi_message_t* message)
@@ -97,13 +97,16 @@ inline static void _PARAMETERS(yi_message_t* message)
   while (i < 14) {
     if (!yi_lex_param_middle(message->buf))
       break;
-    strncpy(message->parameters[i++], message->buf->token->buf,
+    strncpy(message->parameters[i], message->buf->token->buf,
             message->buf->token->len);
+    message->parameters[i][message->buf->token->len] = '\0';
+    i++;
   }
 
   if (yi_lex_param_trailing(message->buf)) {
     strncpy(message->parameters[i], message->buf->token->buf,
             message->buf->token->len);
+    message->parameters[i][message->buf->token->len] = '\0';
   }
 }
 

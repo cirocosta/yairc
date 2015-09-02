@@ -14,6 +14,7 @@ void test1()
   ASSERT(buf->token->type == YI_T_COMMAND, "must use correct token type");
   STRNCMP(buf->token->buf, "PING");
 
+  // "parameters[0] = levin.mozilla.org  
   ASSERT(yi_lex_param_trailing(buf), "find out that it's a trailing parameter");
   ASSERT(buf->token->type == YI_T_PARAM, "use the correct token type");
   STRNCMP(buf->token->buf, "levin.mozilla.org");
@@ -28,16 +29,31 @@ void test1()
 void test2()
 {
   const char* msg =
-      ":levin.mozilla.org 376 guest :End of message of the day.\r\n"
-      ":levin.mozilla.org 251 guest :There are 2687 users online.\r\n"
-      ":levin.mozilla.org 252 guest 8 :operator(s) online\r\n";
+      ":levin.mozilla.org 376 guest :End of message of the day.\r\n";
 
   yi_buffer_t* buf = yi_buffer_create(msg, strlen(msg));
 
-/*   ASSERT(yi_lex_terminal(buf, "PING", strlen("PING")), */
-/*          "tokenize terminal PING command"); */
-/*   ASSERT(buf->token->type == YI_T_PREFIX, ""); */
-/*   STRNCMP(buf->token->buf, "PING"); */
+  // prefix = levin.mozilla.org 
+  ASSERT(yi_lex_single_terminal(buf, ':'), "");
+  ASSERT(yi_lex_prefix_hostname(buf), "");
+  ASSERT(buf->token->type == YI_T_PREFIX, "");
+  STRNCMP(buf->token->buf, "levin.mozilla.org");
+  ASSERT(yi_lex_single_terminal(buf, ' '), "");
+
+  // numeric command
+  ASSERT(yi_lex_command(buf), "");
+  ASSERT(buf->token->type == YI_T_COMMAND, "");
+  STRNCMP(buf->token->buf, "376");
+
+  // parameter
+  ASSERT(yi_lex_param_middle(buf), "");
+  ASSERT(buf->token->type == YI_T_PARAM, "");
+  STRNCMP(buf->token->buf, "guest");
+
+  // parameter
+  ASSERT(yi_lex_param_trailing(buf), "");
+  ASSERT(buf->token->type == YI_T_PARAM, "");
+  STRNCMP(buf->token->buf, "End of message of the day.");
 
   yi_buffer_destroy(buf);
 }

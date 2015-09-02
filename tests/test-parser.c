@@ -22,9 +22,14 @@ void test2()
       ":levin.mozilla.org 376 guest :End of message of the day.\r\n";
   yi_message_t* message = yi_parse(msg, strlen(msg));
 
-  /* ASSERT(strlen(message->prefix) == 0, "No prefix"); */
-  /* STRNCMP(message->command, "PING"); */
-  /* STRNCMP(message->parameters[0], ":levin.mozilla.org"); */
+  ASSERT(strlen(message->prefix) > 0, "Has a prefix");
+  STRNCMP(message->prefix, "levin.mozilla.org");
+
+  ASSERT(strlen(message->command) > 0, "Has a command");
+  STRNCMP(message->command, "376");
+
+  STRNCMP(message->parameters[0], "guest");
+  STRNCMP(message->parameters[1], "End of message of the day.");
 
   yi_message_destroy(message);
 }

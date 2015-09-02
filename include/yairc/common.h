@@ -57,10 +57,10 @@
 
 #define TEST(__test, ...)                                                      \
   do {                                                                         \
-    LOG("%s: %s:" #__VA_ARGS__ " RUNNING!", __BASE_FILE__, #__test);           \
+    LOG("RUN\t%s: %s:" #__VA_ARGS__, __BASE_FILE__, #__test);                  \
     fflush(stdout);                                                            \
     __test();                                                                  \
-    LOG("\t%s: %s:" #__VA_ARGS__ " OK!", __BASE_FILE__, #__test);              \
+    LOG("OK\t\t%s: %s:" #__VA_ARGS__, __BASE_FILE__, #__test);                 \
     fflush(stdout);                                                            \
   } while (0)
 

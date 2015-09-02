@@ -127,6 +127,7 @@ int yi_lex_param_middle(yi_buffer_t* buf)
   if (!(peek = _is_middle(peek)))
     return 0;
 
+  buf->la += 1;
   yi_buffer_update(buf, peek, YI_T_PARAM);
 
   return 1;
