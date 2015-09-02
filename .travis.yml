@@ -1,0 +1,33 @@
+sudo: false
+language: c
+compiler:
+  - clang
+addons:
+  apt:
+    sources:
+      - ubuntu-toolchain-r-test
+      - llvm-toolchain-precise-3.6
+    packages:
+      - gcc-4.9
+      - clang-3.6
+      - m4
+      - valgrind
+
+before_script:
+  - export BUILD=Debug
+  - if [ "$CXX" = "clang" ]; then export CC="clang-3.6"; fi
+  - if [ "$CXX" = "gcc" ]; then export CC="gcc-4.9"; fi
+
+script:
+  - make && make test
+  - valgrind --leak-check=yes --error-exitcode=1 ./tests/test-is.out
+  - valgrind --leak-check=yes --error-exitcode=1 ./tests/test-lexer.out
+  - valgrind --leak-check=yes --error-exitcode=1 ./tests/test-parser.out
+  - valgrind --dsymutil=yes --tool=callgrind ./tests/test-parser.out
+  - callgrind_annotate callgrind.* --inclusive=no --threshold=99 --tree=calling | grep yairc
+
+
+notifications:
+  email: false
+
+

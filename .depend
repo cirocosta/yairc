@@ -1,0 +1,2 @@
+main.o: src/main.c include/yairc/connection.h include/yairc/unet.h \
+  include/yairc/debug.h include/yairc/common.h

@@ -40,7 +40,7 @@ $(LIB): $(LIB_OBJS)
 depend: .depend
 
 .depend: $(SRCS)
-	@$(CC) $(CFLAGS) $(INCLUDES) -MM $^ -MF ./.depend
+	$(CC) $(CFLAGS) $(INCLUDES) -MM $^ -MF ./.depend
 
 include .depend
 
@@ -55,5 +55,6 @@ print-%:
 
 clean:
 	find . \( -name "*.o" -o -name "*.a" -o -name "*.out" \) -type f -delete &
-	find . \( -name $(PROGRAM) -o -name ".depend" \) -type f -delete
+	find . \( -name $(PROGRAM) -o -name "callgrind.*" \) -type f -delete
+	
 
