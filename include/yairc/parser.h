@@ -70,18 +70,11 @@ inline static void _MESSAGE(yi_message_t* message)
 
 inline static void _PREFIX(yi_message_t* message)
 {
-  if (!yi_lex_single_terminal(message->buf, ':'))
-    return;
-
-  if (yi_lex_prefix_hostname(message->buf)) {
+  if (yi_lex_prefix(message->buf)) {
     strncpy(message->prefix, message->buf->token->buf,
             message->buf->token->len);
-  } else if (yi_lex_prefix_nickname(message->buf)) {
-    strncpy(message->prefix, message->buf->token->buf,
-            message->buf->token->len);
+    message->prefix[message->buf->token->len] = '\0';
   }
-
-  yi_lex_single_terminal(message->buf, ' ');
 }
 
 inline static void _COMMAND(yi_message_t* message)

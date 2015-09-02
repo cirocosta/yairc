@@ -6,7 +6,6 @@
 #include <ctype.h>
 #include <stdlib.h>
 
-
 inline static int _in_range(char value, char begin, char end)
 {
   return value >= begin && value < end;
@@ -112,7 +111,7 @@ inline static char const* _is_nickname(char const* peek)
 // 1*[^\r\n @\0]
 inline static char const* _is_user(char const* peek)
 {
-  if (!_any_except(*peek, "\r\n @\0", 5)) 
+  if (!_any_except(*peek, "\r\n @\0", 5))
     return NULL;
 
   while (*peek) {
@@ -253,6 +252,49 @@ inline static char const* _is_host(char const* peek)
     return peek;
 
   return NULL;
+}
+
+inline static char const* _is_prefix_hostname(char const* peek)
+{
+  if (!(peek = _is_hostname(peek)))
+    return NULL;
+
+  if (!(peek = _is_single_terminal(peek, ' ')))
+    return NULL;
+
+  return peek;
+}
+
+inline static char const* _is_prefix_nickname(char const* la)
+{
+  char const* peek;
+  char const* tmp;
+
+  if (!(peek = _is_nickname(la)))
+    return 0;
+
+  tmp = peek;
+
+  if ((tmp = _is_single_terminal(peek, '!'))) {
+    if (!(tmp = _is_user(tmp)))
+      return NULL;
+    if (!(tmp = _is_single_terminal(tmp, '@')))
+      return NULL;
+    if (!(tmp = _is_host(tmp)))
+      return NULL;
+    peek = tmp;
+  }
+
+  else if ((tmp = _is_single_terminal(peek, '@'))) {
+    if (!(tmp = _is_host(tmp)))
+      return NULL;
+    peek = tmp;
+  }
+
+  if (!(peek = _is_single_terminal(peek, ' ')))
+    return NULL;
+
+  return peek;
 }
 
 #endif

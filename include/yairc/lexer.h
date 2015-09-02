@@ -13,7 +13,8 @@ typedef enum yi_token_type_e {
   YI_T_TERMINAL,
   YI_T_COMMAND,
   YI_T_PARAM,
-  YI_T_PREFIX,
+  YI_T_PREFIX_HOSTNAME,
+  YI_T_PREFIX_NICKNAME,
 } yi_token_type_e;
 
 typedef struct yi_token_t {
@@ -40,8 +41,7 @@ int yi_lex_single_terminal(yi_buffer_t* buf, char c);
 int yi_lex_terminal(yi_buffer_t* buf, char* terminal, unsigned size);
 
 int yi_lex_command(yi_buffer_t* buf);
-int yi_lex_prefix_nickname(yi_buffer_t* buf);
-int yi_lex_prefix_hostname(yi_buffer_t* buf);
+int yi_lex_prefix(yi_buffer_t* buf);
 int yi_lex_param_middle(yi_buffer_t* buf);
 int yi_lex_param_trailing(yi_buffer_t* buf);
 

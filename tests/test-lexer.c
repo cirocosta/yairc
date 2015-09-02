@@ -34,11 +34,9 @@ void test2()
   yi_buffer_t* buf = yi_buffer_create(msg, strlen(msg));
 
   // prefix = levin.mozilla.org
-  ASSERT(yi_lex_single_terminal(buf, ':'), "");
-  ASSERT(yi_lex_prefix_hostname(buf), "");
-  ASSERT(buf->token->type == YI_T_PREFIX, "");
+  ASSERT(yi_lex_prefix(buf), "");
+  ASSERT(buf->token->type == YI_T_PREFIX_HOSTNAME, "");
   STRNCMP(buf->token->buf, "levin.mozilla.org");
-  ASSERT(yi_lex_single_terminal(buf, ' '), "");
 
   // numeric command
   ASSERT(yi_lex_command(buf), "");
@@ -66,11 +64,9 @@ void test3()
   yi_buffer_t* buf = yi_buffer_create(msg, strlen(msg));
 
   // prefix = levin.mozilla.org
-  ASSERT(yi_lex_single_terminal(buf, ':'), "");
-  ASSERT(yi_lex_prefix_hostname(buf), "");
-  ASSERT(buf->token->type == YI_T_PREFIX, "");
+  ASSERT(yi_lex_prefix(buf), "");
+  ASSERT(buf->token->type == YI_T_PREFIX_HOSTNAME, "");
   STRNCMP(buf->token->buf, "levin.mozilla.org");
-  ASSERT(yi_lex_single_terminal(buf, ' '), "");
 
   // textual command
   ASSERT(yi_lex_command(buf), "");
@@ -127,11 +123,9 @@ void test5()
   yi_buffer_t* buf = yi_buffer_create(msg, strlen(msg));
 
   // nicknamed prefix
-  ASSERT(yi_lex_single_terminal(buf, ':'), "");
-  ASSERT(yi_lex_prefix_nickname(buf), "");
-  ASSERT(buf->token->type == YI_T_PREFIX, "");
+  ASSERT(yi_lex_prefix(buf), "");
+  ASSERT(buf->token->type == YI_T_PREFIX_NICKNAME, "");
   STRNCMP(buf->token->buf, "NickServ!services@ircservices.mozilla.org");
-  ASSERT(yi_lex_single_terminal(buf, ' '), "");
 
   // textual command
   ASSERT(yi_lex_command(buf), "");

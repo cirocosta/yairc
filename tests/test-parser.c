@@ -23,12 +23,24 @@ void test2()
   yi_message_t* message = yi_parse(msg, strlen(msg));
 
   STRNCMP(message->prefix, "levin.mozilla.org");
-
-  ASSERT(strlen(message->command) > 0, "Has a command");
   STRNCMP(message->command, "376");
-
   STRNCMP(message->parameters[0], "guest");
   STRNCMP(message->parameters[1], "End of message of the day.");
+
+  yi_message_destroy(message);
+}
+
+void test3()
+{
+  const char* msg = ":NickServ!services@ircservices.mozilla.org NOTICE guest "
+                    ":please choose a different nick.\r\n";
+
+  yi_message_t* message = yi_parse(msg, strlen(msg));
+
+  STRNCMP(message->prefix, "NickServ!services@ircservices.mozilla.org");
+  STRNCMP(message->command, "NOTICE");
+  STRNCMP(message->parameters[0], "guest");
+  STRNCMP(message->parameters[1], "please choose a different nick.");
 
   yi_message_destroy(message);
 }
@@ -37,6 +49,7 @@ int main(int argc, char* argv[])
 {
   TEST(test1);
   TEST(test2);
+  TEST(test3);
 
   return 0;
 }

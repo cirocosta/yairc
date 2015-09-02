@@ -62,45 +62,24 @@ int yi_lex_terminal(yi_buffer_t* buf, char* terminal, unsigned size)
   return 1;
 }
 
-int yi_lex_prefix_hostname(yi_buffer_t* buf)
+int yi_lex_prefix(yi_buffer_t* buf)
 {
   char const* peek;
 
-  if (!(peek = _is_hostname(buf->la)))
+  if (!(_is_single_terminal(buf->la, ':')))
     return 0;
 
-  yi_buffer_update(buf, peek, YI_T_PREFIX);
-
-  return 1;
-}
-
-int yi_lex_prefix_nickname(yi_buffer_t* buf)
-{
-  char const* peek;
-  char const* tmp;
-
-  if (!(peek = _is_nickname(buf->la)))
-    return 0;
-
-  tmp = peek;
-  
-  if ((tmp = _is_single_terminal(tmp, '!'))) {
-    if (!(tmp = _is_user(tmp)))
-      return 0;
-    if (!(tmp = _is_single_terminal(tmp, '@')))
-      return 0;
-    if (!(tmp = _is_host(tmp)))
-      return 0;
-    peek = tmp;
-  } 
-  
-  else if ((tmp = _is_single_terminal(tmp, '@'))) {
-    if (!(tmp = _is_host(tmp)))
-      return 0;
-    peek = tmp;
+  if ((peek = _is_prefix_hostname(buf->la + 1))) {
+    buf->la += 1;
+    yi_buffer_update(buf, peek, YI_T_PREFIX_HOSTNAME);
+    return 1;
   }
 
-  yi_buffer_update(buf, peek, YI_T_PREFIX);
+  if (!(peek = _is_prefix_nickname(buf->la + 1)))
+    return 0;
+
+  buf->la += 1;
+  yi_buffer_update(buf, peek, YI_T_PREFIX_NICKNAME);
 
   return 1;
 }
