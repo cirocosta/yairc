@@ -1,10 +1,11 @@
 #ifndef YI___IS_H
-#define YI___IS_H 
+#define YI___IS_H
 
 #include "yairc/common.h"
 #include <string.h>
 #include <ctype.h>
 #include <stdlib.h>
+
 
 inline static int _in_range(char value, char begin, char end)
 {
@@ -34,7 +35,8 @@ inline static char const* _is_digit(char const* la)
   return la + 1;
 }
 
-inline static char const* _is_terminal(char const* peek, char* terminal, unsigned size)
+inline static char const* _is_terminal(char const* peek, char* terminal,
+                                       unsigned size)
 {
   if (!peek)
     return NULL;
@@ -84,7 +86,6 @@ inline static char const* _is_hostname(char const* peek)
 
   return peek;
 }
-
 
 // nickname = (letter|special) *8(letter|digit|special|"-")
 // (letter|special) --reduce--> [0x41-0x7D]
@@ -240,6 +241,18 @@ inline static char const* _is_ip4addr(char const* peek)
   }
 
   return peek;
+}
+
+inline static char const* _is_host(char const* peek)
+{
+  if ((peek = _is_hostname(peek)))
+    return peek;
+  else if ((peek = _is_ip4addr(peek)))
+    return peek;
+  else if ((peek = _is_ip6addr(peek)))
+    return peek;
+
+  return NULL;
 }
 
 #endif

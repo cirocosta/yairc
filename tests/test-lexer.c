@@ -10,27 +10,17 @@ void test1()
   yi_buffer_t* buf = yi_buffer_create(msg, strlen(msg));
 
   // "PING"
-  ASSERT(yi_lex_terminal(buf, "PING", strlen("PING")),
-         "tokenize terminal PING command");
-  ASSERT(buf->token->type == YI_T_TERMINAL, "");
+  ASSERT(yi_lex_command(buf), "tokenize terminal PING command");
+  ASSERT(buf->token->type == YI_T_COMMAND, "must use correct token type");
   STRNCMP(buf->token->buf, "PING");
 
-
-  // " "
-  ASSERT(yi_lex_single_terminal(buf, ' '), "tokenize terminal space");
-  ASSERT(buf->token->type == YI_T_SINGLE_TERMINAL, "");
-
-  ASSERT(yi_lex_single_terminal(buf, ':'), "tokenize terminal space");
-  ASSERT(buf->token->type == YI_T_SINGLE_TERMINAL, "");
-
-  // {HOSTNAME}
-  ASSERT(yi_lex_hostname(buf), "tokenize terminal hostname");
-  ASSERT(buf->token->type == YI_T_HOSTNAME, "");
+  ASSERT(yi_lex_param_trailing(buf), "find out that it's a trailing parameter");
+  ASSERT(buf->token->type == YI_T_PARAM, "use the correct token type");
   STRNCMP(buf->token->buf, "levin.mozilla.org");
 
   // {CRLF}
   ASSERT(yi_lex_terminal(buf, "\r\n", 2), "tokenize crlf");
-  ASSERT(buf->token->type == YI_T_TERMINAL, "");
+  ASSERT(buf->token->type == YI_T_TERMINAL, "it's a terminal!");
 
   yi_buffer_destroy(buf);
 }
@@ -43,6 +33,11 @@ void test2()
       ":levin.mozilla.org 252 guest 8 :operator(s) online\r\n";
 
   yi_buffer_t* buf = yi_buffer_create(msg, strlen(msg));
+
+/*   ASSERT(yi_lex_terminal(buf, "PING", strlen("PING")), */
+/*          "tokenize terminal PING command"); */
+/*   ASSERT(buf->token->type == YI_T_PREFIX, ""); */
+/*   STRNCMP(buf->token->buf, "PING"); */
 
   yi_buffer_destroy(buf);
 }
@@ -87,7 +82,6 @@ void test5()
 
   yi_buffer_destroy(buf);
 }
-
 
 int main(int argc, char* argv[])
 {

@@ -11,7 +11,20 @@ void test1()
 
   ASSERT(strlen(message->prefix) == 0, "No prefix");
   STRNCMP(message->command, "PING");
-  STRNCMP(message->parameters[0], ":levin.mozilla.org");
+  STRNCMP(message->parameters[0], "levin.mozilla.org");
+
+  yi_message_destroy(message);
+}
+
+void test2()
+{
+  const char* msg =
+      ":levin.mozilla.org 376 guest :End of message of the day.\r\n";
+  yi_message_t* message = yi_parse(msg, strlen(msg));
+
+  /* ASSERT(strlen(message->prefix) == 0, "No prefix"); */
+  /* STRNCMP(message->command, "PING"); */
+  /* STRNCMP(message->parameters[0], ":levin.mozilla.org"); */
 
   yi_message_destroy(message);
 }
@@ -19,6 +32,7 @@ void test1()
 int main(int argc, char* argv[])
 {
   TEST(test1);
+  TEST(test2);
 
   return 0;
 }

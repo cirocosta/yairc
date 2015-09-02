@@ -62,39 +62,44 @@ int yi_lex_terminal(yi_buffer_t* buf, char* terminal, unsigned size)
   return 1;
 }
 
-int yi_lex_hostname(yi_buffer_t* buf)
+int yi_lex_prefix_hostname(yi_buffer_t* buf)
 {
   char const* peek;
 
   if (!(peek = _is_hostname(buf->la)))
     return 0;
 
-  yi_buffer_update(buf, peek, YI_T_HOSTNAME);
+  yi_buffer_update(buf, peek, YI_T_PREFIX);
 
   return 1;
 }
 
-int yi_lex_host(yi_buffer_t* buf)
+int yi_lex_prefix_nickname(yi_buffer_t* buf)
 {
   char const* peek;
+  char const* tmp;
 
-  if ((peek = _is_hostname(buf->la)) || (peek = _is_ip4addr(buf->la)) ||
-      (peek = _is_ip6addr(buf->la))) {
-    yi_buffer_update(buf, peek, YI_T_HOST);
-    return 1;
-  }
-
-  return 0;
-}
-
-int yi_lex_user(yi_buffer_t* buf)
-{
-  char const* peek;
-
-  if (!(peek = _is_user(buf->la)))
+  if (!(peek = _is_nickname(buf->la)))
     return 0;
 
-  yi_buffer_update(buf, peek, YI_T_USER);
+  tmp = peek;
+  
+  if ((tmp = _is_single_terminal(tmp, '!'))) {
+    if (!(tmp = _is_user(tmp)))
+      return 0;
+    if (!(tmp = _is_single_terminal(tmp, '@')))
+      return 0;
+    if (!(tmp = _is_host(tmp)))
+      return 0;
+  } 
+  
+  else if ((tmp = _is_single_terminal(tmp, '@'))) {
+    if (!(tmp = _is_host(tmp)))
+      return 0;
+    peek = tmp;
+  }
+
+  yi_buffer_update(buf, peek, YI_T_PREFIX);
 
   return 1;
 }
@@ -104,18 +109,6 @@ int yi_lex_command(yi_buffer_t* buf)
   char const* peek = buf->la;
 
   if (!(peek = _is_command(peek)))
-    return 0;
-
-  yi_buffer_update(buf, peek, YI_T_COMMAND);
-
-  return 1;
-}
-
-int yi_lex_nickname(yi_buffer_t* buf)
-{
-  char const* peek;
-
-  if (!(peek = _is_command(buf->la)))
     return 0;
 
   yi_buffer_update(buf, peek, YI_T_COMMAND);
@@ -150,7 +143,7 @@ int yi_lex_param_trailing(yi_buffer_t* buf)
   if (!(peek = _is_trailing(peek)))
     return 0;
 
-  buf->la += 1;
+  buf->la += 2;
   yi_buffer_update(buf, peek, YI_T_PARAM);
 
   return 1;

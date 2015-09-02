@@ -75,18 +75,12 @@ inline static void _MESSAGE(yi_message_t* message)
 
 inline static void _PREFIX(yi_message_t* message)
 {
-  if (yi_lex_hostname(message->buf))
-    return;
-
-  if (!yi_lex_nickname(message->buf))
-    exit(1); // err
-
-  if (yi_lex_single_terminal(message->buf, '!')) {
-    yi_lex_user(message->buf);
-    yi_lex_single_terminal(message->buf, '@');
-    yi_lex_host(message->buf);
-  } else if (yi_lex_single_terminal(message->buf, '@')) {
-    yi_lex_host(message->buf);
+  if (yi_lex_prefix_hostname(message->buf)) {
+    strncpy(message->prefix, message->buf->token->buf,
+            message->buf->token->len);
+  } else if (yi_lex_prefix_nickname(message->buf)) {
+    strncpy(message->prefix, message->buf->token->buf,
+            message->buf->token->len);
   }
 }
 
