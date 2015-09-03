@@ -6,7 +6,7 @@
 
 #include <stdlib.h>
 
-#define YI_MAXBUFSIZE 512 + 1
+#define YI_MAX_MESSAGE_SIZE 512 + 1
 
 typedef enum yi_token_type_e {
   YI_T_SINGLE_TERMINAL = 1,
@@ -18,7 +18,7 @@ typedef enum yi_token_type_e {
 } yi_token_type_e;
 
 typedef struct yi_token_t {
-  char buf[YI_MAXBUFSIZE];
+  char buf[YI_MAX_MESSAGE_SIZE];
   yi_token_type_e type;
   unsigned len;
 } yi_token_t;

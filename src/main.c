@@ -1,7 +1,12 @@
-#include <stdio.h>
 #include "yairc/connection.h"
+#include "yairc/parser.h"
+
+#include <stdio.h>
+#include <string.h>
 
 #define WRITE(__fd, __str) write(__fd, __str, strlen(__str))
+
+static const char* CRLF = "\r\n";
 
 static const char* CLI_HELP =
     "Usage: yairc <url> <service>\n"
@@ -12,19 +17,50 @@ static const char* CLI_HELP =
     "Example:\n"
     "\t./yairc irc.mozilla.org ircd\n";
 
-void communicate(int sockfd)
+void read_messages(int sockfd)
 {
-  size_t nread = 0;
-  char recvline[YI_MAXLINE] = { 0 };
+  char buf[YI_MAXLINE] = { 0 };
+  char out_buf[YI_MAX_MESSAGE_SIZE] = { 0 };
+  char* la = NULL;
+  char* tmp = NULL;
 
-  WRITE(sockfd, "NICK guest\r\n");
-  WRITE(sockfd, "USER guest 0 * :A Cool Guest\r\n");
+  int nread = 0;
+  unsigned tot_read = 0;
+  unsigned len = 0;
 
-  while ((nread = read(sockfd, recvline, YI_MAXLINE))) {
-    write(STDOUT_FILENO, recvline, nread + 1);
+  while (1) {
+    if ((nread = read(sockfd, buf + tot_read, YI_MAXLINE - tot_read)) < 0) {
+      perror("read error:");
+      return;
+    } else if (!nread) {
+      memset(buf, '\0', tot_read + 1);
+      tot_read = 0;
+      sleep(1);
+      continue;
+    }
+
+    tot_read += nread;
+    tmp = buf;
+    la = strstr(tmp, CRLF);
+
+    if (!la)
+      continue;
+
+    do {
+      la += 1; // points to \n
+      len = la - tmp;
+
+      memcpy(out_buf, tmp, len);
+      out_buf[len] = '\0';
+      tmp = la;
+
+      tot_read -= len;
+      write(STDOUT_FILENO, out_buf, len);
+    } while ((la = strstr(tmp, CRLF)));
+
+    memmove(buf, tmp, strlen(tmp));
+    buf[strlen(tmp)] = '\0';
   }
-
-  memset(recvline, '\0', nread + 1);
 }
 
 int main(int argc, char* argv[])
@@ -38,7 +74,11 @@ int main(int argc, char* argv[])
 
   connection = yi_tcp_connect(argv[1], argv[2]);
   LOG("Connection Established!");
-  communicate(connection->sockfd);
+
+  WRITE(connection->sockfd, "NICK guest812938\r\n");
+  WRITE(connection->sockfd, "USER guest812938 0 * :A Cool Guest\r\n");
+
+  read_messages(connection->sockfd);
 
   yi_close(connection->sockfd);
   yi_delete_connection(connection);

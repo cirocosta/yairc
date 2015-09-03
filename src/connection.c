@@ -28,10 +28,8 @@ yi_connection_t* yi_tcp_connect(const char* host, const char* serv)
     yi_close(sockfd);
   } while ((res = res->ai_next));
 
-  if (!res) {
-    LOGERR("address %s (serv: %s) - couldn't establish connection", host, serv);
-    return NULL;
-  }
+  ASSERT(res, "address %s (serv: %s) - couldn't establish connection", host,
+         serv);
 
   connection = malloc(sizeof(*connection));
   connection->addrinfo = res;
@@ -39,4 +37,3 @@ yi_connection_t* yi_tcp_connect(const char* host, const char* serv)
 
   return connection;
 }
-

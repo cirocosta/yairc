@@ -1,4 +1,5 @@
 #include <string.h>
+#include <unistd.h>
 #include <stdio.h>
 
 #include "yairc/common.h"
@@ -45,11 +46,39 @@ void test3()
   yi_message_destroy(message);
 }
 
+// FUCKING remember: char* msg = "hue" ==> string literal
+//                   char msg[] ==> modifiable string
+//         just testing some functionality for reading \r\n's
+void test4()
+{
+  char out_buf[4096] = { 0 };
+  char buf[] = "kkKkkkKKKk\r\nTTTTTTTTTTTTTTTTTTTTT\r\nbbbb\r\nxxxx";
+  char* la = NULL;
+  char* tmp = NULL;
+  unsigned len = 0;
+
+  tmp = buf;
+  while ((la = strstr(tmp, "\r\n"))) {
+    la += 2;
+    len = la - tmp;
+
+    memcpy(out_buf, tmp, len);
+    out_buf[len] = '\0';
+    write(STDOUT_FILENO, out_buf, len);
+    tmp = la;
+  }
+
+  memmove(buf, tmp, strlen(tmp));
+  buf[strlen(tmp)] = '\0';
+  LOG("final arr = %s", buf);
+}
+
 int main(int argc, char* argv[])
 {
   TEST(test1);
   TEST(test2);
   TEST(test3);
+  TEST(test4, "Message split");
 
   return 0;
 }

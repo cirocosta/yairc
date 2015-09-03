@@ -97,38 +97,10 @@ ssize_t write_n(int fd, const void *vptr, size_t n)
   return nwritten;
 }
 
-ssize_t yi_read_n(int fd, void *vptr, size_t n)
-{
-  size_t nleft = n;
-  char *ptr = vptr;
-  ssize_t nread;
-
-  while (nleft) {
-    if ((nread = read(fd, ptr, nleft)) < 0) {
-      if (errno == EINTR)
-        nread = 0;
-      else
-        return -1;
-    } else if (!nread) {
-      break;
-    }
-
-    nleft -= nread;
-    ptr += nread;
-  }
-
-  return n - nleft;
-}
-
 void yi_write_ne(int fd, const void *ptr, size_t nbytes)
 {
   ASSERT(write_n(fd, ptr, nbytes) == nbytes,
          "Error during write_n: not enought bytes written");
-}
-
-void yi_read_ne(int fd, void *ptr, size_t nbytes)
-{
-  ASSERT(yi_read_n(fd, ptr, nbytes) >= 0, "Error during read_n");
 }
 
 const char *yi_inet_ntop(int family, const void *addrptr, char *strptr,
