@@ -28,6 +28,10 @@ void read_messages(int sockfd)
   unsigned tot_read = 0;
   unsigned len = 0;
 
+#ifndef NDEBUG
+  setbuf(stdout, NULL);
+#endif
+
   while (1) {
     if ((nread = read(sockfd, buf + tot_read, YI_MAXLINE - tot_read)) < 0) {
       perror("read error:");

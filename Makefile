@@ -5,9 +5,12 @@ LIBS =
 DEFS = -D_GNU_SOURCE 
 INCLUDES = -I/usr/include -I./include
 
-PROGRAM = yairc
+PROGRAM_CLIENT = yairc-client
+PROGRAM_SERVER = yairc-server
+
 LIB = src/libyairc.a
-SOURCE = src/main.c
+SOURCE_CLIENT = src/yairc-client.c
+SOURCE_SERVER = src/yairc-server.c
 TESTS_DIR = tests/
 
 BUILD := debug
@@ -23,10 +26,13 @@ SRCS = $(shell find src/ -name '*.c')
 LIB_OBJS := $(patsubst %.c, %.o, $(filter-out $(SOURCE), $(SRCS)))
 TESTS:= $(patsubst %.c, %.out, $(shell find $(TESTS_DIR) -name '*.c'))
 
-all: $(PROGRAM) test depend
+all: $(PROGRAM_CLIENT) $(PROGRAM_SERVER) test depend
 
-$(PROGRAM): $(LIB) $(SOURCE)
-	$(CC) $(CFLAGS) $(SOURCE) $(DEFS) $(INCLUDES) $(LIBS) -o $@ $<
+$(PROGRAM_CLIENT): $(LIB) $(SOURCE_CLIENT)
+	$(CC) $(CFLAGS) $(SOURCE_CLIENT) $(DEFS) $(INCLUDES) $(LIBS) -o $@ $<
+
+$(PROGRAM_SERVER): $(LIB) $(SOURCE_SERVER)
+	$(CC) $(CFLAGS) $(SOURCE_SERVER) $(DEFS) $(INCLUDES) $(LIBS) -o $@ $<
 
 $(LIB): $(LIB_OBJS)
 	$(AR) rvs $@ $^
@@ -55,6 +61,7 @@ print-%:
 
 clean:
 	find . \( -name "*.o" -o -name "*.a" -o -name "*.out" \) -type f -delete &
-	find . \( -name $(PROGRAM) -o -name "callgrind.*" \) -type f -delete
+	find . \( -name $(PROGRAM_CLIENT) -o -name $(PROGRAM_SERVER) \) -type f -delete &
+	find . -name "callgrind.*" -type f -delete
 	
 

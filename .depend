@@ -1,3 +1,1 @@
-main.o: src/main.c include/yairc/connection.h include/yairc/unet.h \
-  include/yairc/debug.h include/yairc/common.h include/yairc/parser.h \
-  include/yairc/lexer.h include/yairc/_is.h
+signals.o: src/signals.c include/yairc/signals.h
