@@ -6,8 +6,6 @@
 
 #define WRITE(__fd, __str) write(__fd, __str, strlen(__str))
 
-static const char* CRLF = "\r\n";
-
 static const char* CLI_HELP =
     "Usage: yairc <url> <service>\n"
     "\n"
@@ -27,10 +25,6 @@ void read_messages(int sockfd)
   int nread = 0;
   unsigned tot_read = 0;
   unsigned len = 0;
-
-#ifndef NDEBUG
-  setbuf(stdout, NULL);
-#endif
 
   while (1) {
     if ((nread = read(sockfd, buf + tot_read, YI_MAXLINE - tot_read)) < 0) {
@@ -71,13 +65,17 @@ int main(int argc, char* argv[])
 {
   yi_connection_t* connection;
 
+#ifndef NDEBUG
+  setbuf(stdout, NULL);
+#endif
+
   if (argc != 3) {
     fprintf(stderr, "%s\n", CLI_HELP);
     return EXIT_FAILURE;
   }
 
   connection = yi_tcp_connect(argv[1], argv[2]);
-  LOG("Connection Established!");
+  LOG("Connection Established!\n");
 
   WRITE(connection->sockfd, "NICK guest812938\r\n");
   WRITE(connection->sockfd, "USER guest812938 0 * :A Cool Guest\r\n");

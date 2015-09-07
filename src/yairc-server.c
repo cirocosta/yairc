@@ -1,13 +1,12 @@
-#include "yairc/unet.h"
 #include "yairc/signals.h"
 #include "yairc/common.h"
+#include "yairc/connection.h"
 
 #include <sys/wait.h>
 #include <sys/types.h>
 
 #include <stdlib.h>
 #include <stdio.h>
-
 
 // SIGCHLD is sent by the kernel to the parent whenever a child process
 // terminates.
@@ -21,27 +20,14 @@ void sig_chld(int signo)
     write(STDERR_FILENO, "Child terminated\n", 18);
 }
 
-void communicate(const int sockfd)
+void consume_message(yi_message_t* message)
 {
-  ssize_t n;
-  char buf[YI_MAXLINE];
-
-  while (1) {
-    while ((n = read(sockfd, buf, YI_MAXLINE)) > 0) {
-      DLOG("Received: %s", buf);
-      yi_write(STDOUT_FILENO, buf, n);
-      memset(buf, 0, n);
-    }
-
-    if (n < 0 && errno == EINTR) // interrupted!
-      continue;
-    break;
-  }
-
-  ASSERT(n >= 0, "Couldn't read properly");
+  LOG("command = %s", message->command);
+  LOG("prefix = %s\n", message->prefix);
+  LOG("parameters[%d] = %s", 0,  message->parameters[0]);
 }
 
-int main(int argc, char *argv[])
+int main(int argc, char* argv[])
 {
   int listen_fd, conn_fd;
   pid_t child_pid;
@@ -62,15 +48,14 @@ int main(int argc, char *argv[])
   server_addr.sin_port = htons(YI_PORT_IRC);
   server_addr.sin_addr.s_addr = htonl(INADDR_ANY);
 
-  yi_bind(listen_fd, (SA *)&server_addr, sizeof(server_addr));
+  yi_bind(listen_fd, (SA*)&server_addr, sizeof(server_addr));
   yi_listen(listen_fd, YI_LISTEN_BACKLOG);
   LOG("%s\n", "listening");
 
   while (1) {
     client_len = sizeof(client_addr);
-    conn_fd = yi_accept(listen_fd, (SA *)&client_addr, &client_len);
-    LOG("%s\n", "connection accepted!");
-
+    conn_fd = yi_accept(listen_fd, (SA*)&client_addr, &client_len);
+    LOG("%s\n", "connection accepted!\n");
 
     if (!~conn_fd) {
       if (errno == EINTR)
@@ -80,9 +65,9 @@ int main(int argc, char *argv[])
     }
 
     if ((!(child_pid = fork()))) { // child
-      DLOG("Client Connected!");
+      DLOG("Client Connected!\n");
       yi_close(listen_fd);
-      communicate(conn_fd);
+      yi_read_incoming(conn_fd, consume_message);
       exit(EXIT_SUCCESS);
     }
 
@@ -91,4 +76,3 @@ int main(int argc, char *argv[])
 
   return 0;
 }
-

@@ -6,6 +6,8 @@
 #include <stdio.h>
 #include <string.h>
 
+#define CRLF "\r\n"
+
 #define FREE(__ptr)                                                            \
   do {                                                                         \
     free(__ptr);                                                               \

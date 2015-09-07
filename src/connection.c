@@ -37,3 +37,54 @@ yi_connection_t* yi_tcp_connect(const char* host, const char* serv)
 
   return connection;
 }
+
+void yi_read_incoming(int fd,
+                      void (*process_message)(yi_message_t* modified_msg))
+{
+  yi_message_t* message = yi_message_create(NULL, 0);
+  char buf[YI_MAXLINE] = { 0 };
+  char out_buf[513] = { 0 };
+  char* la = NULL;
+  char* tmp = NULL;
+
+  int nread = 0;
+  unsigned tot_read = 0;
+  unsigned len = 0;
+
+  while (1) {
+    if ((nread = read(fd, buf + tot_read, YI_MAXLINE - tot_read)) < 0) {
+      perror("yi_read_incoming::read error:");
+      break;
+    } else if (!nread) {
+      memset(buf, '\0', tot_read + 1);
+      tot_read = 0;
+      break;
+    }
+
+    tot_read += nread;
+    tmp = buf;
+    la = strstr(tmp, CRLF);
+
+
+    if (!la)
+      continue;
+
+    do {
+      la += 2; // points to \n
+      len = la - tmp;
+
+      memcpy(out_buf, tmp, len);
+      out_buf[len] = '\0';
+      tmp = la;
+      tot_read -= len;
+
+      yi_parse_m(message, out_buf, len);
+      process_message(message);
+    } while ((la = strstr(tmp, CRLF)));
+
+    memmove(buf, tmp, strlen(tmp));
+    buf[strlen(tmp)] = '\0';
+  }
+
+  yi_message_destroy(message);
+}
