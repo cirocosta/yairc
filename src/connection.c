@@ -38,6 +38,44 @@ yi_connection_t* yi_tcp_connect(const char* host, const char* serv)
   return connection;
 }
 
+yi_connection_t* yi_tcp_listen(const char* host, const char* serv)
+{
+  yi_connection_t* connection = NULL;
+  int listenfd, n;
+  const int on = 1;
+  struct addrinfo hints, *res;
+
+  bzero(&hints, sizeof(struct addrinfo));
+  hints.ai_flags = AI_PASSIVE;
+  hints.ai_family = AF_UNSPEC;
+  hints.ai_socktype = SOCK_STREAM;
+
+  ASSERT(!(n = getaddrinfo(NULL, serv, &hints, &res)),
+         "tcp_listen error for %s, %s: %s", host, serv, gai_strerror(n));
+
+  do {
+    listenfd = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
+    if (listenfd < 0)
+      continue; /* error, try next one */
+
+    ASSERT(~setsockopt(listenfd, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on)),
+           "couldn't set socket options properly");
+    if (bind(listenfd, res->ai_addr, res->ai_addrlen) == 0)
+      break; /* success */
+
+    yi_close(listenfd);
+  } while ((res = res->ai_next) != NULL);
+
+  ASSERT(res, "tcp_listen error for %s:%s", host, serv);
+  yi_listen(listenfd, YI_LISTEN_BACKLOG);
+
+  connection = malloc(sizeof(*connection));
+  connection->addrinfo = res;
+  connection->sockfd = listenfd;
+
+  return connection;
+}
+
 void yi_read_incoming(int fd,
                       void (*process_message)(yi_message_t* modified_msg))
 {
@@ -64,7 +102,6 @@ void yi_read_incoming(int fd,
     tot_read += nread;
     tmp = buf;
     la = strstr(tmp, CRLF);
-
 
     if (!la)
       continue;

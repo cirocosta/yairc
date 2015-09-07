@@ -18,6 +18,7 @@ typedef struct yi_connection_t {
 
 void yi_delete_connection(yi_connection_t* conn);
 yi_connection_t* yi_tcp_connect(const char* host, const char* serv);
+yi_connection_t* yi_tcp_listen(const char* host, const char* service);
 void yi_read_incoming(int sockfd, void (*process_message)(yi_message_t* msg));
 
 #endif
