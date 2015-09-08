@@ -19,7 +19,7 @@ yi_message_t messages[] = {
    .parameters = { "Ciro", "Ciro", "localhost", " realname" } },
 };
 
-void message_processer1(yi_message_t* message)
+void message_processer1(yi_connection_t* conn, yi_message_t* message)
 {
   STRNCMP(message->prefix, messages[counter].prefix);
   STRNCMP(message->command, messages[counter].command);
@@ -33,17 +33,20 @@ void message_processer1(yi_message_t* message)
 
 void test1()
 {
+  yi_connection_t* connection = yi_connection_create();
   char* path = "./tests/assets/log1.txt";
   FILE* fp = fopen(path, "r");
+
+  connection->sockfd = fileno(fp);
 
   if (!fp) {
     perror("file open:");
     exit(EXIT_FAILURE);
   }
 
-  yi_read_incoming(fileno(fp), message_processer1);
+  yi_read_incoming(connection, message_processer1);
 
-  fclose(fp);
+  yi_connection_destroy(connection);
 }
 
 int main(int argc, char* argv[])

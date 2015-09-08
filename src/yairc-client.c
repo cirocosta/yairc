@@ -82,8 +82,7 @@ int main(int argc, char* argv[])
 
   read_messages(connection->sockfd);
 
-  yi_close(connection->sockfd);
-  yi_delete_connection(connection);
+  yi_connection_destroy(connection);
 
   return EXIT_SUCCESS;
 }

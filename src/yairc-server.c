@@ -20,7 +20,7 @@ void sig_chld(int signo)
     write(STDERR_FILENO, "Child terminated\n", 18);
 }
 
-void consume_message(yi_message_t* message)
+void consume_message(yi_connection_t* conn, yi_message_t* message)
 {
   LOG("command = %s", message->command);
   LOG("prefix = %s\n", message->prefix);
@@ -29,10 +29,8 @@ void consume_message(yi_message_t* message)
 
 int main(int argc, char* argv[])
 {
-  yi_connection_t* connection = yi_tcp_listen(NULL, "ircd");
-  struct sockaddr_in client_addr;
-  unsigned client_len;
-  int conn_fd;
+  yi_connection_t* listen_connection = yi_tcp_listen(NULL, "ircd");
+  yi_connection_t* client_connection = NULL;
   int child_pid;
 
 #ifndef NDEBUG
@@ -43,25 +41,16 @@ int main(int argc, char* argv[])
   yi_signal(SIGCHLD, sig_chld);
 
   while (1) {
-    client_len = sizeof(client_addr);
-    conn_fd = yi_accept(connection->sockfd, (SA*)&client_addr, &client_len);
-    LOG("%s\n", "connection accepted!\n");
-
-    if (!~conn_fd) {
-      if (errno == EINTR)
-        continue;
-      LOGERR("Server Accept Error.");
-      exit(EXIT_FAILURE);
-    }
+    client_connection = yi_connection_accept(listen_connection->sockfd);
 
     if ((!(child_pid = fork()))) { // child
       DLOG("Client Connected!\n");
-      yi_close(connection->sockfd);
-      yi_read_incoming(conn_fd, consume_message);
+      yi_close(listen_connection->sockfd);
+      yi_read_incoming(client_connection, consume_message);
       exit(EXIT_SUCCESS);
     }
 
-    yi_close(conn_fd); // parent continues
+    yi_connection_destroy(client_connection); // parent continues
   }
 
   return 0;

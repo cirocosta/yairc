@@ -1,10 +1,36 @@
 #include "yairc/connection.h"
 
-void yi_delete_connection(yi_connection_t* conn)
+yi_connection_t* yi_connection_create()
 {
-  close(conn->sockfd);
+  yi_connection_t* conn = malloc(sizeof(*conn));
+  ASSERT(conn, "Couldn't properly allocate memory");
+
+  memset(conn->host, '\0', NAME_MAX);
+  conn->addrinfo = NULL;
+  conn->sockfd = -1;
+  conn->port = 0;
+
+  return conn;
+}
+
+void yi_connection_destroy(yi_connection_t* conn)
+{
+  yi_close(conn->sockfd);
   freeaddrinfo(conn->addrinfo);
   FREE(conn);
+}
+
+yi_connection_t* yi_connection_accept(int listen_sock_fd)
+{
+  struct sockaddr_in client_addr;
+  socklen_t len;
+  yi_connection_t* conn = yi_connection_create();
+
+  conn->sockfd = yi_accept(listen_sock_fd, (SA*)&client_addr, &len);
+  inet_ntop(AF_INET, &client_addr.sin_addr, conn->host, NAME_MAX);
+  conn->port = ntohs(client_addr.sin_port);
+
+  return conn;
 }
 
 yi_connection_t* yi_tcp_connect(const char* host, const char* serv)
@@ -31,9 +57,11 @@ yi_connection_t* yi_tcp_connect(const char* host, const char* serv)
   ASSERT(res, "address %s (serv: %s) - couldn't establish connection", host,
          serv);
 
-  connection = malloc(sizeof(*connection));
+  connection = yi_connection_create();
   connection->addrinfo = res;
   connection->sockfd = sockfd;
+  memcpy(connection->host, host, strlen(host));
+  // TODO get the port
 
   return connection;
 }
@@ -50,7 +78,7 @@ yi_connection_t* yi_tcp_listen(const char* host, const char* serv)
   hints.ai_family = AF_UNSPEC;
   hints.ai_socktype = SOCK_STREAM;
 
-  ASSERT(!(n = getaddrinfo(NULL, serv, &hints, &res)),
+  ASSERT(!(n = getaddrinfo(host, serv, &hints, &res)),
          "tcp_listen error for %s, %s: %s", host, serv, gai_strerror(n));
 
   do {
@@ -58,10 +86,13 @@ yi_connection_t* yi_tcp_listen(const char* host, const char* serv)
     if (listenfd < 0)
       continue; /* error, try next one */
 
+
     ASSERT(~setsockopt(listenfd, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on)),
            "couldn't set socket options properly");
-    if (bind(listenfd, res->ai_addr, res->ai_addrlen) == 0)
-      break; /* success */
+    
+    // able to succesfully bind --> OK!
+    if (!bind(listenfd, res->ai_addr, res->ai_addrlen))
+      break;
 
     yi_close(listenfd);
   } while ((res = res->ai_next) != NULL);
@@ -69,15 +100,17 @@ yi_connection_t* yi_tcp_listen(const char* host, const char* serv)
   ASSERT(res, "tcp_listen error for %s:%s", host, serv);
   yi_listen(listenfd, YI_LISTEN_BACKLOG);
 
-  connection = malloc(sizeof(*connection));
+  connection = yi_connection_create();
   connection->addrinfo = res;
   connection->sockfd = listenfd;
+  inet_ntop(AF_INET, res->ai_addr, connection->host, NAME_MAX);
 
   return connection;
 }
 
-void yi_read_incoming(int fd,
-                      void (*process_message)(yi_message_t* modified_msg))
+void yi_read_incoming(yi_connection_t* conn,
+                      void (*process_message)(yi_connection_t* sconn,
+                                              yi_message_t* modified_msg))
 {
   yi_message_t* message = yi_message_create(NULL, 0);
   char buf[YI_MAXLINE] = { 0 };
@@ -90,7 +123,8 @@ void yi_read_incoming(int fd,
   unsigned len = 0;
 
   while (1) {
-    if ((nread = read(fd, buf + tot_read, YI_MAXLINE - tot_read)) < 0) {
+    if ((nread = read(conn->sockfd, buf + tot_read, YI_MAXLINE - tot_read)) <
+        0) {
       perror("yi_read_incoming::read error:");
       break;
     } else if (!nread) {
@@ -116,7 +150,7 @@ void yi_read_incoming(int fd,
       tot_read -= len;
 
       yi_parse_m(message, out_buf, len);
-      process_message(message);
+      process_message(conn, message);
     } while ((la = strstr(tmp, CRLF)));
 
     memmove(buf, tmp, strlen(tmp));
