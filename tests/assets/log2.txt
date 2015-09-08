@@ -1,0 +1,7 @@
+CAP LS
+
+
+
+NICK cirocosta
+USER Ciro Ciro localhost : realname
+

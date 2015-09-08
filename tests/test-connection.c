@@ -31,12 +31,17 @@ void message_processer1(yi_connection_t* conn, yi_message_t* message)
   counter++;
 }
 
+/**
+ * Properly written
+ * without extra CRLFs
+ */
 void test1()
 {
   yi_connection_t* connection = yi_connection_create();
   char* path = "./tests/assets/log1.txt";
   FILE* fp = fopen(path, "r");
 
+  counter = 0;
   connection->sockfd = fileno(fp);
 
   if (!fp) {
@@ -45,15 +50,39 @@ void test1()
   }
 
   yi_read_incoming(connection, message_processer1);
-
   yi_connection_destroy(connection);
 }
+
+
+/**
+ * With extra CRLFs
+ */
+void test2()
+{
+  yi_connection_t* connection = yi_connection_create();
+  char* path = "./tests/assets/log2.txt";
+  FILE* fp = fopen(path, "r");
+
+
+  counter = 0;
+  connection->sockfd = fileno(fp);
+
+  if (!fp) {
+    perror("file open:");
+    exit(EXIT_FAILURE);
+  }
+
+  yi_read_incoming(connection, message_processer1);
+  yi_connection_destroy(connection);
+}
+
 
 int main(int argc, char* argv[])
 {
   setbuf(stdout, NULL);
 
   TEST(test1);
+  TEST(test2);
 
   return 0;
 }

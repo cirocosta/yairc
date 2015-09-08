@@ -8,7 +8,8 @@
 void test1()
 {
   const char* msg = "PING :levin.mozilla.org\r\n";
-  yi_message_t* message = yi_parse(msg, strlen(msg));
+  yi_message_t* message = yi_message_create("", 0);
+  ASSERT(yi_parse_m(message, msg, strlen(msg)) == YI_MESSAGE_OK, "parse ok!");
 
   ASSERT(strlen(message->prefix) == 0, "No prefix");
   STRNCMP(message->command, "PING");
@@ -19,7 +20,7 @@ void test1()
   ASSERT(strlen(message->command) == 0, "No command");
   ASSERT(strlen(message->parameters[0]) == 0, "No first parameter");
 
-  yi_parse_m(message, msg, strlen(msg));
+  ASSERT(yi_parse_m(message, msg, strlen(msg)) == YI_MESSAGE_OK, "parse ok!");
   ASSERT(strlen(message->prefix) == 0, "No prefix");
   STRNCMP(message->command, "PING");
   STRNCMP(message->parameters[0], "levin.mozilla.org");
@@ -31,7 +32,8 @@ void test2()
 {
   const char* msg =
       ":levin.mozilla.org 376 guest :End of message of the day.\r\n";
-  yi_message_t* message = yi_parse(msg, strlen(msg));
+  yi_message_t* message = yi_message_create("", 0);
+  ASSERT(yi_parse_m(message, msg, strlen(msg)) == YI_MESSAGE_OK, "parse ok!");
 
   STRNCMP(message->prefix, "levin.mozilla.org");
   STRNCMP(message->command, "376");
@@ -39,7 +41,7 @@ void test2()
   STRNCMP(message->parameters[1], "End of message of the day.");
 
   // resets internally and is ready to do it again
-  yi_parse_m(message, msg, strlen(msg));
+  ASSERT(yi_parse_m(message, msg, strlen(msg)) == YI_MESSAGE_OK, "parse ok!");
   STRNCMP(message->prefix, "levin.mozilla.org");
   STRNCMP(message->command, "376");
   STRNCMP(message->parameters[0], "guest");

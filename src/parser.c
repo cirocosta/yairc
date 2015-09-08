@@ -1,23 +1,18 @@
 #include "yairc/parser.h"
 
-inline static void _MESSAGE(yi_message_t* message);
-inline static void _PREFIX(yi_message_t* message);
-inline static void _COMMAND(yi_message_t* message);
-inline static void _PARAMETERS(yi_message_t* message);
+// TODO deal with the case of malformed messages.
 
-yi_message_t* yi_parse(const char* src, unsigned src_size)
-{
-  yi_message_t* message = yi_message_create(src, src_size);
+inline static yi_message_status_e _MESSAGE(yi_message_t* message);
+inline static yi_message_status_e _PREFIX(yi_message_t* message);
+inline static yi_message_status_e _COMMAND(yi_message_t* message);
+inline static yi_message_status_e _PARAMETERS(yi_message_t* message);
 
-  _MESSAGE(message);
-
-  return message;
-}
-
-void yi_parse_m(yi_message_t* message, const char* src, unsigned src_size)
+yi_message_status_e yi_parse_m(yi_message_t* message, const char* src,
+                             unsigned src_size)
 {
   yi_message_reset(message, src, src_size);
-  _MESSAGE(message);
+
+  return _MESSAGE(message);
 }
 
 yi_message_t* yi_message_create(const char* msg, unsigned msg_size)
@@ -58,31 +53,41 @@ void yi_message_destroy(yi_message_t* message)
   FREE(message);
 }
 
-inline static void _MESSAGE(yi_message_t* message)
+inline static yi_message_status_e _MESSAGE(yi_message_t* message)
 {
+  if (yi_lex_terminal(message->buf, "\r\n", 2))
+    return YI_MESSAGE_NUL;
+
   _PREFIX(message);
   _COMMAND(message);
   _PARAMETERS(message);
+
   yi_lex_terminal(message->buf, "\r\n", 2);
+
+  return YI_MESSAGE_OK;
 }
 
-inline static void _PREFIX(yi_message_t* message)
+inline static yi_message_status_e _PREFIX(yi_message_t* message)
 {
   if (yi_lex_prefix(message->buf)) {
     strncpy(message->prefix, message->buf->token->buf,
             message->buf->token->len);
     message->prefix[message->buf->token->len] = '\0';
   }
+
+  return YI_MESSAGE_OK;
 }
 
-inline static void _COMMAND(yi_message_t* message)
+inline static yi_message_status_e _COMMAND(yi_message_t* message)
 {
   yi_lex_command(message->buf);
   strncpy(message->command, message->buf->token->buf, message->buf->token->len);
   message->command[message->buf->token->len] = '\0';
+
+  return YI_MESSAGE_OK;
 }
 
-inline static void _PARAMETERS(yi_message_t* message)
+inline static yi_message_status_e _PARAMETERS(yi_message_t* message)
 {
   unsigned i = 0;
 
@@ -100,4 +105,6 @@ inline static void _PARAMETERS(yi_message_t* message)
             message->buf->token->len);
     message->parameters[i][message->buf->token->len] = '\0';
   }
+
+  return YI_MESSAGE_OK;
 }

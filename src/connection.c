@@ -146,7 +146,9 @@ void yi_read_incoming(yi_connection_t* conn,
       tmp = la;
       tot_read -= len;
 
-      yi_parse_m(message, out_buf, len);
+      if (yi_parse_m(message, out_buf, len) == YI_MESSAGE_NUL)
+        continue;
+
       process_message(conn, message);
     } while ((la = strstr(tmp, CRLF)));
 
