@@ -1,17 +1,17 @@
 #ifndef YI__CONNECTION_H
 #define YI__CONNECTION_H
 
+#include "yairc/common.h"
 #include "yairc/unet.h"
 #include "yairc/parser.h"
 
-#include <linux/limits.h>
 #include <fcntl.h>
 #include <stdlib.h>
 
 typedef struct yi_connection_t {
   struct addrinfo* addrinfo;
   int sockfd;
-  char host[NAME_MAX];
+  char host[YI_MAX_NAME];
   uint16_t port;
 } yi_connection_t;
 

@@ -10,6 +10,7 @@
  */
 
 #include "yairc/debug.h"
+#include "yairc/common.h"
 
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -23,20 +24,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <netdb.h>
-
-// SIZES
-#define YI_LISTEN_BACKLOG 1024
-#define YI_MAXLINE 4096
-#define YI_BUFFSIZE 8192
-
-#define YI_INET_ADDR_STRLEN 16
-#define YI_INET6_ADDR_STRLEN 46
-
-// PORTS. See more @ /etc/services
-#define YI_PORT_DAYTIME 13
-#define YI_PORT_ECHO 7
-#define YI_PORT_IRC 6667
-#define YI_PORT_SMTP 25
 
 typedef struct sockaddr SA;
 

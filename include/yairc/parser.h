@@ -1,16 +1,16 @@
 #ifndef YI__PARSER_H
 #define YI__PARSER_H
 
+#include "yairc/common.h"
 #include "yairc/lexer.h"
 
-#define YI_MAX_MESSAGE_PARAMS 15
 
 typedef struct yi_message_t {
   yi_buffer_t* buf;
 
-  char prefix[YI_MAX_MESSAGE_SIZE];
-  char command[YI_MAX_MESSAGE_SIZE];
-  char parameters[YI_MAX_MESSAGE_PARAMS][YI_MAX_MESSAGE_SIZE]; // TODO wow!
+  char prefix[YI_MAX_MESSAGE];
+  char command[YI_MAX_MESSAGE];
+  char parameters[YI_MAX_MESSAGE_PARAMS][YI_MAX_MESSAGE]; // TODO wow!
   unsigned char parameters_count;
 } yi_message_t;
 

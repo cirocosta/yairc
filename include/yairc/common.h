@@ -1,6 +1,7 @@
 #ifndef YAIRC__COMMON_H
 #define YAIRC__COMMON_H
 
+#include "yairc/constants.h"
 #include <errno.h>
 #include <stdlib.h>
 #include <stdio.h>

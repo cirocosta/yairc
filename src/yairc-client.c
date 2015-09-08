@@ -17,8 +17,8 @@ static const char* CLI_HELP =
 
 void read_messages(int sockfd)
 {
-  char buf[YI_MAXLINE] = { 0 };
-  char out_buf[YI_MAX_MESSAGE_SIZE] = { 0 };
+  char buf[YI_MAX_LINE] = { 0 };
+  char out_buf[YI_MAX_MESSAGE] = { 0 };
   char* la = NULL;
   char* tmp = NULL;
 
@@ -27,7 +27,7 @@ void read_messages(int sockfd)
   unsigned len = 0;
 
   while (1) {
-    if ((nread = read(sockfd, buf + tot_read, YI_MAXLINE - tot_read)) < 0) {
+    if ((nread = read(sockfd, buf + tot_read, YI_MAX_LINE - tot_read)) < 0) {
       perror("read error:");
       return;
     } else if (!nread) {

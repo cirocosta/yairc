@@ -5,7 +5,7 @@ yi_connection_t* yi_connection_create()
   yi_connection_t* conn = malloc(sizeof(*conn));
   ASSERT(conn, "Couldn't properly allocate memory");
 
-  memset(conn->host, '\0', NAME_MAX);
+  memset(conn->host, '\0', YI_MAX_NAME);
   conn->addrinfo = NULL;
   conn->sockfd = -1;
   conn->port = 0;
@@ -27,7 +27,7 @@ yi_connection_t* yi_connection_accept(int listen_sock_fd)
   yi_connection_t* conn = yi_connection_create();
 
   conn->sockfd = yi_accept(listen_sock_fd, (SA*)&client_addr, &len);
-  inet_ntop(AF_INET, &client_addr.sin_addr, conn->host, NAME_MAX);
+  inet_ntop(AF_INET, &client_addr.sin_addr, conn->host, YI_MAX_NAME);
   conn->port = ntohs(client_addr.sin_port);
 
   return conn;
@@ -86,10 +86,9 @@ yi_connection_t* yi_tcp_listen(const char* host, const char* serv)
     if (listenfd < 0)
       continue; /* error, try next one */
 
-
     ASSERT(~setsockopt(listenfd, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on)),
            "couldn't set socket options properly");
-    
+
     // able to succesfully bind --> OK!
     if (!bind(listenfd, res->ai_addr, res->ai_addrlen))
       break;
@@ -98,12 +97,12 @@ yi_connection_t* yi_tcp_listen(const char* host, const char* serv)
   } while ((res = res->ai_next) != NULL);
 
   ASSERT(res, "tcp_listen error for %s:%s", host, serv);
-  yi_listen(listenfd, YI_LISTEN_BACKLOG);
+  yi_listen(listenfd, YI_MAX_BACKLOG);
 
   connection = yi_connection_create();
   connection->addrinfo = res;
   connection->sockfd = listenfd;
-  inet_ntop(AF_INET, res->ai_addr, connection->host, NAME_MAX);
+  inet_ntop(AF_INET, res->ai_addr, connection->host, YI_MAX_NAME);
 
   return connection;
 }
@@ -113,8 +112,8 @@ void yi_read_incoming(yi_connection_t* conn,
                                               yi_message_t* modified_msg))
 {
   yi_message_t* message = yi_message_create(NULL, 0);
-  char buf[YI_MAXLINE] = { 0 };
-  char out_buf[513] = { 0 };
+  char buf[YI_MAX_LINE] = { 0 };
+  char out_buf[YI_MAX_MESSAGE] = { 0 };
   char* la = NULL;
   char* tmp = NULL;
 
@@ -123,13 +122,11 @@ void yi_read_incoming(yi_connection_t* conn,
   unsigned len = 0;
 
   while (1) {
-    if ((nread = read(conn->sockfd, buf + tot_read, YI_MAXLINE - tot_read)) <
+    if ((nread = read(conn->sockfd, buf + tot_read, YI_MAX_LINE - tot_read)) <
         0) {
       perror("yi_read_incoming::read error:");
       break;
     } else if (!nread) {
-      memset(buf, '\0', tot_read + 1);
-      tot_read = 0;
       break;
     }
 
