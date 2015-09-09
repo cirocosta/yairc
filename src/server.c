@@ -75,7 +75,7 @@ int yi_server_user_change(yi_server_t* server, yi_user_t* user, char* username,
   unsigned i = 0;
 
   for (; i < server->users_count; i++)
-    if (!strcmp(server->users[i]->username, username))
+    if (server->users[i] && !strcmp(server->users[i]->username, username))
       return 0;
 
   strncpy(server->users[user->uid]->username, username, strlen(username));
@@ -89,7 +89,7 @@ int yi_server_nick_change(yi_server_t* server, yi_user_t* user, char* nick)
   unsigned i = 0;
 
   for (; i < server->users_count; i++)
-    if (!strcmp(server->users[i]->username, nick))
+    if (server->users[i] && !strcmp(server->users[i]->username, nick))
       return 0;
 
   strncpy(server->users[user->uid]->nickname, nick, strlen(nick));
