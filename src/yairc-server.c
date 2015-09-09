@@ -1,7 +1,7 @@
+#include "yairc/commands.h"
 #include "yairc/common.h"
-#include "yairc/connection.h"
-#include "yairc/user.h"
 #include "yairc/server.h"
+#include "yairc/parser.h"
 
 #include <sys/wait.h>
 #include <sys/types.h>
@@ -20,22 +20,48 @@
 
 yi_server_t g_server;
 
-void process_message(yi_connection_t* conn, yi_message_t* message)
+/**
+ * processes a message that came from a user
+ */
+void process_message(void* arg, yi_message_t* message)
 {
-  LOG("command = %s", message->command);
-  LOG("prefix = %s\n", message->prefix);
-  LOG("parameters[%d] = %s", 0, message->parameters[0]);
+  ENTRY e, *ep;
+  yi_user_t* user = (yi_user_t*)arg;
+
+  LOG("%d\tusername = %s", user->uid, user->username);
+  LOG("%d\tcommand = %s", user->uid, message->command);
+  LOG("%d\tprefix = %s\n", user->uid, message->prefix);
+  LOG("%d\tparameters[%d] = %s", user->uid, 0, message->parameters[0]);
+
+  if (!message->command[0])
+    return;
+
+  e.key = message->command;
+  ep = hsearch(e, FIND);
+
+  if (!ep) {
+    LOGERR("\tuid[%u]: command %s not found.", user->uid, message->command);
+    return;
+  }
+
+  (*(yi_command_callback)ep->data)(&g_server, user, message);
 }
 
+/**
+ * A thread-simulated user process within the
+ * server
+ */
 void* user_process(void* arg)
 {
   yi_user_t* user = (yi_user_t*)arg;
 
   DLOG("\tFrom inside the user process");
-
-  yi_read_incoming(user->conn, process_message);
+  yi_message_parse_fd(user->conn->sockfd, (void*)user, process_message);
+  DLOG("\tConnection end. Removing user.");
 
   yi_server_remove_user(&g_server, user);
+  yi_user_destroy(user);
+
   pthread_exit(EXIT_SUCCESS);
 }
 
@@ -51,6 +77,8 @@ int main(int argc, char* argv[])
   setbuf(stdout, NULL);
 #endif
 
+  yi_commands_table_init();
+
   while (1) {
     DLOG("waiting for connection...");
     client_connection = yi_connection_accept(listen_connection->sockfd);
@@ -60,5 +88,6 @@ int main(int argc, char* argv[])
     pthread_create(&tids[i++], NULL, user_process, (void*)client);
   }
 
+  yi_commands_table_destroy();
   pthread_exit(EXIT_SUCCESS);
 }

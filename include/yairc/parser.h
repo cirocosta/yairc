@@ -1,6 +1,7 @@
 #ifndef YI__PARSER_H
 #define YI__PARSER_H
 
+#include "yairc/user.h"
 #include "yairc/common.h"
 #include "yairc/lexer.h"
 
@@ -26,5 +27,9 @@ void yi_message_destroy(yi_message_t* message);
 
 yi_message_status_e yi_parse_m(yi_message_t* message, const char* src,
                                unsigned src_size);
+
+void yi_message_parse_fd(int fd, void* data,
+                         void (*process_message)(void* data,
+                                                 yi_message_t* msg));
 
 #endif

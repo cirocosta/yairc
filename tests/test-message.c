@@ -1,5 +1,6 @@
 #include "yairc/connection.h"
 #include "yairc/common.h"
+#include "yairc/parser.h"
 
 #include <libgen.h>
 #include <linux/limits.h>
@@ -19,7 +20,7 @@ yi_message_t messages[] = {
    .parameters = { "Ciro", "Ciro", "localhost", " realname" } },
 };
 
-void message_processer1(yi_connection_t* conn, yi_message_t* message)
+void message_processer1(void* arg, yi_message_t* message)
 {
   STRNCMP(message->prefix, messages[counter].prefix);
   STRNCMP(message->command, messages[counter].command);
@@ -37,45 +38,38 @@ void message_processer1(yi_connection_t* conn, yi_message_t* message)
  */
 void test1()
 {
-  yi_connection_t* connection = yi_connection_create();
   char* path = "./tests/assets/log1.txt";
   FILE* fp = fopen(path, "r");
 
   counter = 0;
-  connection->sockfd = fileno(fp);
 
   if (!fp) {
     perror("file open:");
     exit(EXIT_FAILURE);
   }
 
-  yi_read_incoming(connection, message_processer1);
-  yi_connection_destroy(connection);
+  yi_message_parse_fd(fileno(fp), NULL, message_processer1);
+  fclose(fp);
 }
-
 
 /**
  * With extra CRLFs
  */
 void test2()
 {
-  yi_connection_t* connection = yi_connection_create();
   char* path = "./tests/assets/log2.txt";
   FILE* fp = fopen(path, "r");
 
-
   counter = 0;
-  connection->sockfd = fileno(fp);
 
   if (!fp) {
     perror("file open:");
     exit(EXIT_FAILURE);
   }
 
-  yi_read_incoming(connection, message_processer1);
-  yi_connection_destroy(connection);
+  yi_message_parse_fd(fileno(fp), NULL, message_processer1);
+  fclose(fp);
 }
-
 
 int main(int argc, char* argv[])
 {

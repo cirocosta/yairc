@@ -3,7 +3,6 @@
 
 #include "yairc/common.h"
 #include "yairc/unet.h"
-#include "yairc/parser.h"
 
 #include <fcntl.h>
 #include <stdlib.h>
@@ -21,9 +20,5 @@ yi_connection_t* yi_connection_accept(int listen_sock_fd);
 
 yi_connection_t* yi_tcp_connect(const char* host, const char* serv);
 yi_connection_t* yi_tcp_listen(const char* host, const char* service);
-
-void yi_read_incoming(yi_connection_t* connection,
-                      void (*process_message)(yi_connection_t* conn,
-                                              yi_message_t* msg));
 
 #endif

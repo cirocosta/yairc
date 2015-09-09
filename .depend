@@ -1,1 +1,4 @@
-signals.o: src/signals.c include/yairc/signals.h
+server.o: src/server.c include/yairc/server.h include/yairc/common.h \
+  include/yairc/constants.h include/yairc/user.h \
+  include/yairc/connection.h include/yairc/unet.h include/yairc/debug.h \
+  include/yairc/channel.h
