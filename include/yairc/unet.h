@@ -48,7 +48,7 @@ ssize_t write_n(int fd, const void *vptr, size_t n);
 
 ssize_t yi_read_n(int fd, void *vptr, size_t n);
 
-void yi_write_ne(int fd, const void *ptr, size_t nbytes);
+void yi_write_ne(int fd, const void *ptr);
 
 void yi_read_ne(int fd, void *ptr, size_t nbytes);
 

@@ -100,10 +100,12 @@ ssize_t write_n(int fd, const void *vptr, size_t n)
   return nwritten;
 }
 
-void yi_write_ne(int fd, const void *ptr, size_t nbytes)
+void yi_write_ne(int fd, const void *ptr)
 {
+  unsigned nbytes = strlen(ptr);
+
   ASSERT(write_n(fd, ptr, nbytes) == nbytes,
-         "Error during write_n: not enought bytes written");
+         "Couldn't write all the bytes (`%s`).", ptr);
 }
 
 const char *yi_inet_ntop(int family, const void *addrptr, char *strptr,

@@ -18,7 +18,7 @@
  *    blocking on read.
  */
 
-yi_server_t g_server;
+yi_server_t* g_server;
 
 /**
  * processes a message that came from a user
@@ -45,7 +45,7 @@ void process_message(void* arg, yi_message_t* message)
     return;
   }
 
-  (*(yi_command_callback)ep->data)(&g_server, user, message);
+  (*(yi_command_callback)ep->data)(g_server, user, message);
 }
 
 /**
@@ -60,7 +60,7 @@ void* user_process(void* arg)
   yi_message_parse_fd(user->conn->sockfd, (void*)user, process_message);
   DLOG("\tConnection end. Removing user.");
 
-  yi_server_remove_user(&g_server, user);
+  yi_server_remove_user(g_server, user);
   yi_user_destroy(user);
 
   pthread_exit(EXIT_SUCCESS);
@@ -70,25 +70,25 @@ int main(int argc, char* argv[])
 {
   unsigned i = 0;
   pthread_t tids[YI_MAX_USERS] = { 0 };
-  const yi_connection_t* listen_connection = yi_tcp_listen(NULL, "ircd");
   yi_connection_t* client_connection = NULL;
   yi_user_t* client = NULL;
+  g_server = yi_server_create("YIServer", "YI0.0.1");
 
 #ifndef NDEBUG
   setbuf(stdout, NULL);
 #endif
-
   yi_commands_table_init();
 
   while (1) {
     DLOG("waiting for connection...");
-    client_connection = yi_connection_accept(listen_connection->sockfd);
+    client_connection = yi_connection_accept(g_server->conn->sockfd);
     DLOG("Client %s Connected!", client_connection->host);
     client = yi_user_create(client_connection);
-    yi_server_add_user(&g_server, client);
+    yi_server_add_user(g_server, client);
     pthread_create(&tids[i++], NULL, user_process, (void*)client);
   }
 
+  yi_server_destroy(g_server);
   yi_commands_table_destroy();
   pthread_exit(EXIT_SUCCESS);
 }
