@@ -44,6 +44,7 @@ void yi_message_reset(yi_message_t* message, const char* msg, unsigned msg_size)
   yi_buffer_reset(message->buf, msg, msg_size);
 
   message->prefix[0] = '\0';
+  message->parameters_count = 0;
   message->command[0] = '\0';
   while (i < YI_MAX_MESSAGE_PARAMS)
     message->parameters[i++][0] = '\0';
@@ -134,6 +135,8 @@ void yi_message_parse_fd(int fd, void* data,
       break;
     }
 
+    // put tmp at the beginning of the big buf
+    // sum the bytes read
     tot_read += nread;
     tmp = buf;
     la = strstr(tmp, CRLF);
@@ -148,15 +151,23 @@ void yi_message_parse_fd(int fd, void* data,
       memcpy(out_buf, tmp, len);
       out_buf[len] = '\0';
       tmp = la;
-      tot_read -= len;
 
       if (yi_parse_m(message, out_buf, len) == YI_MESSAGE_NUL)
         continue;
 
+      LOG("** process message! **");
+      LOG("outbuf=`%s`", out_buf);
+      LOG("tmp=`%s`\n", tmp);
+      LOG("buf=`%s`", buf);
+
       process_message(data, message);
+      memset(out_buf, '\0', len);
     } while ((la = strstr(tmp, CRLF)));
 
+    len = tmp - buf;
+    tot_read -= len;
     memmove(buf, tmp, strlen(tmp));
+    memset(buf+strlen(tmp), '\0', len);
     buf[strlen(tmp)] = '\0';
   }
 

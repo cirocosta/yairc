@@ -18,9 +18,11 @@ typedef struct yi_command_t {
 
 int yi_command_NICK(yi_server_t* server, yi_user_t* user,
                     yi_message_t* message);
+int yi_command_USER(yi_server_t* server, yi_user_t* user,
+                    yi_message_t* message);
 
 const static yi_command_t YI_COMMANDS[] = {
-  {.key = "USER", .callback = NULL },
+  {.key = "USER", .callback = yi_command_USER },
   {.key = "NICK", .callback = yi_command_NICK },
   {.key = "PING", .callback = NULL },
   {.key = "PONG", .callback = NULL },

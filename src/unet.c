@@ -47,10 +47,13 @@ int yi_listen(int sockfd, int backlog)
 int yi_accept(int sockfd, struct sockaddr *addr, socklen_t *addrlen)
 {
   int n;
+
+  *addrlen = sizeof(*addr);
   // we could have an ECONNABORTED here, in which case we'd not
   // really exit w/ a failure, but ignore.
-  ASSERT(~(n = accept(sockfd, addr, addrlen)), "bind error: %s",
+  ASSERT(~(n = accept(sockfd, addr, addrlen)), "accept error: %s",
          strerror(errno));
+
   return n;
 }
 

@@ -14,16 +14,19 @@ void test1()
   ASSERT(strlen(message->prefix) == 0, "No prefix");
   STRNCMP(message->command, "PING");
   STRNCMP(message->parameters[0], "levin.mozilla.org");
+  ASSERT(message->parameters_count == 1, "");
 
   yi_message_reset(message, msg, strlen(msg));
   ASSERT(strlen(message->prefix) == 0, "No prefix");
   ASSERT(strlen(message->command) == 0, "No command");
   ASSERT(strlen(message->parameters[0]) == 0, "No first parameter");
+  ASSERT(message->parameters_count == 0, "");
 
   ASSERT(yi_parse_m(message, msg, strlen(msg)) == YI_MESSAGE_OK, "parse ok!");
   ASSERT(strlen(message->prefix) == 0, "No prefix");
   STRNCMP(message->command, "PING");
   STRNCMP(message->parameters[0], "levin.mozilla.org");
+  ASSERT(message->parameters_count == 1, "");
 
   yi_message_destroy(message);
 }
@@ -37,6 +40,7 @@ void test2()
 
   STRNCMP(message->prefix, "levin.mozilla.org");
   STRNCMP(message->command, "376");
+  ASSERT(message->parameters_count == 2, "");
   STRNCMP(message->parameters[0], "guest");
   STRNCMP(message->parameters[1], "End of message of the day.");
 
@@ -44,6 +48,7 @@ void test2()
   ASSERT(yi_parse_m(message, msg, strlen(msg)) == YI_MESSAGE_OK, "parse ok!");
   STRNCMP(message->prefix, "levin.mozilla.org");
   STRNCMP(message->command, "376");
+  ASSERT(message->parameters_count == 2, "");
   STRNCMP(message->parameters[0], "guest");
   STRNCMP(message->parameters[1], "End of message of the day.");
 
@@ -63,6 +68,7 @@ void test3()
 
   STRNCMP(message->prefix, "NickServ!services@ircservices.mozilla.org");
   STRNCMP(message->command, "NOTICE");
+  ASSERT(message->parameters_count == 2, "");
   STRNCMP(message->parameters[0], "guest");
   STRNCMP(message->parameters[1], "please choose a different nick.");
 
@@ -72,6 +78,7 @@ void test3()
 
   STRNCMP(message->prefix, "levin.mozilla.org");
   STRNCMP(message->command, "376");
+  ASSERT(message->parameters_count == 2, "");
   STRNCMP(message->parameters[0], "guest");
   STRNCMP(message->parameters[1], "End of message of the day.");
 

@@ -28,12 +28,13 @@ void process_message(void* arg, yi_message_t* message)
   ENTRY e, *ep;
   yi_user_t* user = (yi_user_t*)arg;
 
-  LOG("%d\tusername = %s", user->uid, user->username);
-  LOG("%d\tcommand = %s", user->uid, message->command);
-  LOG("%d\tprefix = %s\n", user->uid, message->prefix);
-  LOG("%d\tparameters[%d] = %s", user->uid, 0, message->parameters[0]);
+  LOG("%d\tusername = `%s`", user->uid, user->username);
+  LOG("%d\tcommand = `%s`", user->uid, message->command);
+  LOG("%d\tprefix = `%s`", user->uid, message->prefix);
+  LOG("%d\tparameters[%d] = `%s`", user->uid, 0, message->parameters[0]);
+  LOG("--");
 
-  if (!message->command[0])
+  if (message->command[0] == '\0')
     return;
 
   e.key = message->command;
@@ -82,7 +83,7 @@ int main(int argc, char* argv[])
   while (1) {
     DLOG("waiting for connection...");
     client_connection = yi_connection_accept(listen_connection->sockfd);
-    DLOG("Client Connected!");
+    DLOG("Client %s Connected!", client_connection->host);
     client = yi_user_create(client_connection);
     yi_server_add_user(&g_server, client);
     pthread_create(&tids[i++], NULL, user_process, (void*)client);

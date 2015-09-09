@@ -19,7 +19,11 @@ typedef struct yi_server_t {
 
 yi_server_t* yi_server_create();
 void yi_server_destroy(yi_server_t* server);
+
 int yi_server_nick_change(yi_server_t* server, yi_user_t* user, char* nick);
+int yi_server_user_change(yi_server_t* server, yi_user_t* user, char* username,
+                          char* realname);
+
 unsigned yi_server_add_user(yi_server_t* server, yi_user_t* user);
 void yi_server_remove_user(yi_server_t* server, yi_user_t* user);
 unsigned yi_server_add_channel(yi_server_t* server, yi_channel_t* channel);

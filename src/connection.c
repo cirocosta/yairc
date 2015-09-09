@@ -106,4 +106,3 @@ yi_connection_t* yi_tcp_listen(const char* host, const char* serv)
 
   return connection;
 }
-
