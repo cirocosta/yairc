@@ -62,8 +62,6 @@ void yi_server_remove_user(yi_server_t* server, yi_user_t* user)
   for (; i < user->channels_count; i++)
     yi_channel_remove_user(server->channels[i], user->uid);
   server->users[user->uid] = NULL;
-
-  yi_user_destroy(user);
 }
 
 unsigned yi_server_add_channel(yi_server_t* server, yi_channel_t* channel)

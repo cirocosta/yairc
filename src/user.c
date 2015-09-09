@@ -7,9 +7,9 @@ yi_user_t* yi_user_create(yi_connection_t* conn)
 
   user->conn = conn;
   user->channels_count = 0;
-  user->realname[0] = '\0';
-  user->nickname[0] = '\0';
-  user->username[0] = '\0';
+  memset(user->realname, '\0', YI_MAX_NAME);
+  memset(user->nickname, '\0', YI_MAX_NAME);
+  memset(user->username, '\0', YI_MAX_NAME);
 
   return user;
 }
