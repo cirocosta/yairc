@@ -12,7 +12,7 @@ typedef struct yi_channel_t {
   unsigned users_count;
 } yi_channel_t;
 
-yi_channel_t* yi_channel_create();
+yi_channel_t* yi_channel_create(char* name, char* topic);
 void yi_channel_destroy(yi_channel_t* channel);
 void yi_channel_remove_user(yi_channel_t* channel, unsigned uid);
 void yi_channel_add_user(yi_channel_t* channel, yi_user_t* user);

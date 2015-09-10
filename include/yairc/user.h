@@ -13,6 +13,8 @@ typedef struct yi_user_t {
   unsigned cids[YI_MAX_CHANNELS];
   unsigned uid;
   unsigned channels_count;
+
+  int pinged;
 } yi_user_t;
 
 yi_user_t* yi_user_create(yi_connection_t* conn);

@@ -6,6 +6,7 @@ yi_user_t* yi_user_create(yi_connection_t* conn)
   ASSERT(user, "Couldn't allocate memory properly");
 
   user->conn = conn;
+  user->pinged = 0;
   user->channels_count = 0;
   memset(user->realname, '\0', YI_MAX_NAME);
   memset(user->nickname, '\0', YI_MAX_NAME);

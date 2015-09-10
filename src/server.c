@@ -16,6 +16,8 @@ yi_server_t* yi_server_create(const char* servername, const char* version)
   server->conn = yi_tcp_listen(NULL, "ircd");
   server->users_count = 0;
   server->channels_count = 0;
+  memset(server->channels, 0, YI_MAX_CHANNELS * sizeof(*server->channels));
+
   strncpy(server->name, servername, YI_MAX_NAME);
   strncpy(server->version, version, YI_MAX_NAME);
 
@@ -23,13 +25,29 @@ yi_server_t* yi_server_create(const char* servername, const char* version)
   strncpy(server->user_modes, "aiwroOs", YI_MAX_NAME);
   strncpy(server->channel_modes, "oOvaimnpqrstklbeI", YI_MAX_NAME);
 
+  yi_server_new_channel(server, "#support", "General Support For Newcomers");
+  yi_server_new_channel(server, "#development", "Development Discussions");
+
   return server;
 }
 
 void yi_server_destroy(yi_server_t* server)
 {
+  unsigned i = 0;
   yi_connection_destroy(server->conn);
   pthread_mutex_destroy(&server->mutex);
+
+  for (; i < YI_MAX_CHANNELS; i++)
+    if (server->channels[i])
+      free(server->channels[i]);
+}
+
+int yi_server_ping_user(yi_server_t* server, yi_user_t* user)
+{
+  yi_server_send_message(server, user, "PING", server->conn->host);
+  user->pinged = 1;
+
+  return 0;
 }
 
 int yi_server_send_message(yi_server_t* server, yi_user_t* user, char* command,
@@ -37,34 +55,14 @@ int yi_server_send_message(yi_server_t* server, yi_user_t* user, char* command,
 {
   char msg[YI_MAX_MESSAGE] = { 0 };
 
-  snprintf(msg, YI_MAX_MESSAGE, ":%s %s %s\r\n", server->conn->host, command,
-           params);
+  if (params) {
+    snprintf(msg, YI_MAX_MESSAGE, ":%s %s %s\r\n", server->conn->host, command,
+             params);
+  } else {
+    snprintf(msg, YI_MAX_MESSAGE, ":%s %s\r\n", server->conn->host, command);
+  }
+
   yi_write_ne(user->conn->sockfd, msg);
-
-  return 1;
-}
-
-int yi_server_welcome_user(yi_server_t* server, yi_user_t* user)
-{
-  char buf1[YI_MAX_MESSAGE] = { 0 };
-  char buf2[YI_MAX_MESSAGE] = { 0 };
-  char buf3[YI_MAX_MESSAGE] = { 0 };
-  char buf4[YI_MAX_MESSAGE] = { 0 };
-
-  snprintf(buf1, YI_MAX_MESSAGE,
-           "%s :Welcome to the Internet Relay Network %s!%s@%s", user->nickname,
-           user->nickname, user->username, user->conn->host);
-  snprintf(buf2, YI_MAX_MESSAGE, "%s :Your host is %s, running version %s",
-           user->nickname, server->conn->host, server->version);
-  snprintf(buf3, YI_MAX_MESSAGE, "%s :This server was created %s",
-           user->nickname, server->creation_date);
-  snprintf(buf4, YI_MAX_MESSAGE, "%s %s %s %s %s", user->nickname, server->name,
-           server->version, server->user_modes, server->channel_modes);
-
-  yi_server_send_message(server, user, "001", buf1);
-  yi_server_send_message(server, user, "002", buf2);
-  yi_server_send_message(server, user, "003", buf3);
-  yi_server_send_message(server, user, "004", buf4);
 
   return 1;
 }
@@ -114,10 +112,18 @@ void yi_server_remove_user(yi_server_t* server, yi_user_t* user)
   server->users[user->uid] = NULL;
 }
 
-unsigned yi_server_add_channel(yi_server_t* server, yi_channel_t* channel)
+unsigned yi_server_new_channel(yi_server_t* server, char* name, char* topic)
 {
+  yi_channel_t* channel = yi_channel_create(name, topic);
+
   server->channels[server->channels_count] = channel;
   channel->cid = server->channels_count;
 
   return server->channels_count++;
+}
+
+void yi_server_delete_channel(yi_server_t* server, yi_channel_t* channel)
+{
+  server->channels[channel->cid] = NULL;
+  yi_channel_destroy(channel);
 }

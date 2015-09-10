@@ -25,7 +25,7 @@ typedef struct yi_server_t {
   // channels
   unsigned channels_count;
   char channel_modes[YI_MAX_NAME];
-  yi_channel_t* channels[YI_MAX_USERS_PER_CHAN];
+  yi_channel_t* channels[YI_MAX_CHANNELS];
 } yi_server_t;
 
 // ctor dtor
@@ -36,11 +36,17 @@ void yi_server_destroy(yi_server_t* server);
 int yi_server_nick_change(yi_server_t* server, yi_user_t* user, char* nick);
 int yi_server_user_change(yi_server_t* server, yi_user_t* user, char* username,
                           char* realname);
-int yi_server_welcome_user(yi_server_t*, yi_user_t*);
+int yi_server_ping_user(yi_server_t*, yi_user_t*);
 
-// main process
+// general
 unsigned yi_server_add_user(yi_server_t* server, yi_user_t* user);
 void yi_server_remove_user(yi_server_t* server, yi_user_t* user);
-unsigned yi_server_add_channel(yi_server_t* server, yi_channel_t* channel);
+
+unsigned yi_server_new_channel(yi_server_t* server, char* name, char* topic);
+void yi_server_delete_channel(yi_server_t* server, yi_channel_t* channel);
+
+// TODO improve this with buffering capabilities (reduce 'write' calls)
+int yi_server_send_message(yi_server_t* server, yi_user_t* user, char* command,
+                           char* params);
 
 #endif
