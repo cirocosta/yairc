@@ -7,16 +7,16 @@ yi_server_t* yi_server_create(const char* servername, const char* version)
   yi_server_t* server = malloc(sizeof(*server));
   PASSERT(server, "Couldn't allocate memory properly");
 
-  pthread_mutex_init(&server->mutex, NULL);
   time(&rawtime);
   timeinfo = localtime(&rawtime);
-
   strftime(server->creation_date, YI_MAX_NAME,
            "This server was created %c at %Z", timeinfo);
+
+  pthread_mutex_init(&server->mutex, NULL);
   server->conn = yi_tcp_listen(NULL, "ircd");
   server->users_count = 0;
   server->channels_count = 0;
-  memset(server->channels, 0, YI_MAX_CHANNELS * sizeof(*server->channels));
+  server->channels = yi_table_create(YI_MAX_CHANNELS);
 
   strncpy(server->name, servername, YI_MAX_NAME);
   strncpy(server->version, version, YI_MAX_NAME);
@@ -37,9 +37,10 @@ void yi_server_destroy(yi_server_t* server)
   yi_connection_destroy(server->conn);
   pthread_mutex_destroy(&server->mutex);
 
-  for (; i < YI_MAX_CHANNELS; i++)
-    if (server->channels[i])
-      free(server->channels[i]);
+  for (; i < server->channels->size; i++)
+    if (server->channels->data[i])
+      yi_channel_destroy((yi_channel_t*)server->channels->data[i]);
+  yi_table_destroy(server->channels);
 }
 
 int yi_server_ping_user(yi_server_t* server, yi_user_t* user)
@@ -105,25 +106,28 @@ unsigned yi_server_add_user(yi_server_t* server, yi_user_t* user)
 
 void yi_server_remove_user(yi_server_t* server, yi_user_t* user)
 {
-  unsigned i = 0;
+  /* unsigned i = 0; */
 
-  for (; i < user->channels_count; i++)
-    yi_channel_remove_user(server->channels[i], user->uid);
+  /* for (; i < user->channels_count; i++) */
+  /*   yi_channel_remove_user(server->channels[i], user->uid); */
+  
   server->users[user->uid] = NULL;
 }
 
-unsigned yi_server_new_channel(yi_server_t* server, char* name, char* topic)
+yi_channel_t* yi_server_new_channel(yi_server_t* server, char* name,
+                                    char* topic)
 {
   yi_channel_t* channel = yi_channel_create(name, topic);
 
-  server->channels[server->channels_count] = channel;
-  channel->cid = server->channels_count;
+  yi_table_add(server->channels, channel->name, (void*)channel);
+  channel->cid = server->channels_count++;
 
-  return server->channels_count++;
+  return channel;
 }
 
 void yi_server_delete_channel(yi_server_t* server, yi_channel_t* channel)
 {
+  yi_table_remove(server->channels, channel->name);
   server->channels[channel->cid] = NULL;
   yi_channel_destroy(channel);
 }

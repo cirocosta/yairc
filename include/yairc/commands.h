@@ -28,6 +28,8 @@ int yi_command_PING(yi_server_t* server, yi_user_t* user,
                     yi_message_t* message);
 int yi_command_PONG(yi_server_t* server, yi_user_t* user,
                     yi_message_t* message);
+int yi_command_JOIN(yi_server_t* server, yi_user_t* user,
+                    yi_message_t* message);
 
 const static yi_command_t YI_COMMANDS[] = {
   {.key = "USER", .callback = yi_command_USER },
@@ -36,6 +38,7 @@ const static yi_command_t YI_COMMANDS[] = {
   {.key = "PONG", .callback = yi_command_PONG },
   {.key = "QUIT", .callback = yi_command_QUIT },
   {.key = "LIST", .callback = yi_command_LIST },
+  {.key = "JOIN", .callback = yi_command_JOIN },
 };
 
 #define YI_COMMANDS_SIZE (sizeof(YI_COMMANDS) / sizeof(YI_COMMANDS[0]))

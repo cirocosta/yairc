@@ -27,12 +27,64 @@ int yi_command_QUIT(yi_server_t* server, yi_user_t* user, yi_message_t* message)
   return 1;
 }
 
+/* Once a user has joined a channel, he receives information about */
+/* all commands his server receives affecting the channel.  This */
+/* includes JOIN, MODE, KICK, PART, QUIT and of course PRIVMSG/NOTICE. */
+/* This allows channel members to keep track of the other channel */
+/* members, as well as channel modes. */
+
+/* If a JOIN is successful, the user receives a JOIN message as */
+/* confirmation and is then sent the channel's topic (using RPL_TOPIC) and */
+/* the list of users who are on the channel (using RPL_NAMREPLY), which */
+/* MUST include the user joining. */
+int yi_command_JOIN(yi_server_t* server, yi_user_t* user, yi_message_t* message)
+{
+  unsigned i = 0;
+  char buf1[YI_MAX_MESSAGE] = { 0 };
+  yi_channel_t* channel = NULL;
+
+  if (message->parameters_count < 1) {
+    LOGERR("JOIN not enough parameters");
+    return 0;
+  }
+
+  if (!(channel = yi_server_get_channel(server, message->parameters[0]))) {
+    channel = yi_server_new_channel(server, message->parameters[0], "No Topic");
+  }
+
+  yi_channel_add_user(channel, user);
+  // send JOIN to user
+  snprintf(buf1, YI_MAX_MESSAGE, ":%s", channel->name);
+  yi_server_send_message(server, user, "JOIN", buf1);
+  // send RPL_TOPIC
+  snprintf(buf1, YI_MAX_MESSAGE, "%s %s :%s", user->nickname, channel->name,
+           channel->topic);
+  yi_server_send_message(server, user, "332", buf1);
+  
+  for (; i < YI_MAX_USERS_PER_CHAN; i++) {
+    if (!channel->users[i])
+      continue;
+
+    // send RPL_NAMREPLY
+    snprintf(buf1, YI_MAX_MESSAGE, "%s @ %s :%s", user->nickname, channel->name,
+             channel->users[0]->nickname);
+    yi_server_send_message(server, user, "353", buf1);
+  }
+
+  // send RPL_ENDOFNAMES
+  snprintf(buf1, YI_MAX_MESSAGE, "%s %s :End of /NAMES list.", user->nickname,
+           channel->name);
+  yi_server_send_message(server, user, "366", buf1);
+
+  return 1;
+}
+
 int yi_command_LIST(yi_server_t* server, yi_user_t* user, yi_message_t* message)
 {
   unsigned i = 0;
-  char buf1[YI_MAX_MESSAGE] = {0};
-  char buf2[YI_MAX_MESSAGE] = {0};
-  char buf3[YI_MAX_MESSAGE] = {0};
+  char buf1[YI_MAX_MESSAGE] = { 0 };
+  char buf2[YI_MAX_MESSAGE] = { 0 };
+  char buf3[YI_MAX_MESSAGE] = { 0 };
 
   snprintf(buf1, YI_MAX_MESSAGE, "%s Channel :Users Name", user->nickname);
   yi_server_send_message(server, user, "321", buf1);
@@ -104,8 +156,8 @@ int yi_command_USER(yi_server_t* server, yi_user_t* user, yi_message_t* message)
   }
 
   if (!yi_server_user_change(server, user, message->parameters[0],
-                            message->parameters[3])) {
-    // TODO send the proper error message back to the user 
+                             message->parameters[3])) {
+    // TODO send the proper error message back to the user
     LOGERR("USER: user already exists!");
     return 0;
   }

@@ -4,6 +4,7 @@
 #include "yairc/common.h"
 #include "yairc/user.h"
 #include "yairc/channel.h"
+#include "yairc/table.h"
 #include "yairc/connection.h"
 
 #include <time.h>
@@ -25,7 +26,8 @@ typedef struct yi_server_t {
   // channels
   unsigned channels_count;
   char channel_modes[YI_MAX_NAME];
-  yi_channel_t* channels[YI_MAX_CHANNELS];
+  yi_table_t* channels; //  YI_MAX_CHANNELS
+  /* yi_channel_t* channels[YI_MAX_CHANNELS]; */
 } yi_server_t;
 
 // ctor dtor
@@ -42,7 +44,9 @@ int yi_server_ping_user(yi_server_t*, yi_user_t*);
 unsigned yi_server_add_user(yi_server_t* server, yi_user_t* user);
 void yi_server_remove_user(yi_server_t* server, yi_user_t* user);
 
-unsigned yi_server_new_channel(yi_server_t* server, char* name, char* topic);
+yi_channel_t* yi_server_new_channel(yi_server_t* server, char* name,
+                                    char* topic);
+yi_channel_t* yi_server_get_channel(yi_server_t* server, char* name);
 void yi_server_delete_channel(yi_server_t* server, yi_channel_t* channel);
 
 // TODO improve this with buffering capabilities (reduce 'write' calls)
