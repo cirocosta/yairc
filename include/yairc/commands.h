@@ -30,6 +30,12 @@ int yi_command_PONG(yi_server_t* server, yi_user_t* user,
                     yi_message_t* message);
 int yi_command_JOIN(yi_server_t* server, yi_user_t* user,
                     yi_message_t* message);
+int yi_command_PRIVMSG(yi_server_t* server, yi_user_t* user,
+                       yi_message_t* message);
+int yi_command_MACDATA(yi_server_t* server, yi_user_t* user,
+                       yi_message_t* message);
+int yi_command_MACHORA(yi_server_t* server, yi_user_t* user,
+                       yi_message_t* message);
 
 const static yi_command_t YI_COMMANDS[] = {
   {.key = "USER", .callback = yi_command_USER },
@@ -39,6 +45,9 @@ const static yi_command_t YI_COMMANDS[] = {
   {.key = "QUIT", .callback = yi_command_QUIT },
   {.key = "LIST", .callback = yi_command_LIST },
   {.key = "JOIN", .callback = yi_command_JOIN },
+  {.key = "PRIVMSG", .callback = yi_command_PRIVMSG },
+  {.key = "MACDATA", .callback = yi_command_MACDATA },
+  {.key = "MACHORA", .callback = yi_command_MACHORA },
 };
 
 #define YI_COMMANDS_SIZE (sizeof(YI_COMMANDS) / sizeof(YI_COMMANDS[0]))

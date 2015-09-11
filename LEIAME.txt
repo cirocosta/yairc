@@ -1,0 +1,48 @@
+-------
+|YAIRC|
+-------
+
+YAIRC (Yet Another Irc) trata-se de uma incompleta implementação de um servidor IRC visando seguir ao máximo o protocólo como definido nas RFCs (http://tools.ietf.org/html/rfc2810 em diante).
+
+
+Instalação
+----------
+Para iniciar o servidor é necessário que previamente o mesmo seja compilado. Para tal, basta executar o `make` no diretório raíz. Feito isto o binário (yairc-server) será gerado (assim como os objetos e a biblioteca) e então o servidor pode ser iniciado (`./yairc-server`).
+
+Ou seja:
+
+- make
+- ./yairc-server
+
+O servidor então será iniciado, "escutando" então o serviço ircd (porta 6667) e host padrão (wildcard '*').
+
+
+Comandos
+--------
+
+A lista de comandos pode ser encontrada em `./includes/commands.h`, assim como sua implementação em `./src/commands.c`.
+
+Em suma, estão definidos:
+
+- USER
+- NICK
+- PING
+- PONG
+- QUIT
+- LIST
+- JOIN
+- PRIVMSG (não finalizado :/)
+- MACDATA
+- MACHORA
+- MACTEMPERATURA (não implementado :/)
+
+
+Mais Infos
+---------
+
+github: https://github.com/cirocosta/yairc
+email: ciro.costa@usp.br
+
+
+** MPLv2.0 **
+

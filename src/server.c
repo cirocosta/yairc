@@ -106,11 +106,13 @@ unsigned yi_server_add_user(yi_server_t* server, yi_user_t* user)
 
 void yi_server_remove_user(yi_server_t* server, yi_user_t* user)
 {
-  /* unsigned i = 0; */
+  unsigned i = 0;
 
-  /* for (; i < user->channels_count; i++) */
-  /*   yi_channel_remove_user(server->channels[i], user->uid); */
-  
+  for (; i < user->channels_count; i++) {
+    if (server->channels_list[user->cids[i]])
+      yi_channel_remove_user(server->channels_list[user->cids[i]], user);
+  }
+
   server->users[user->uid] = NULL;
 }
 
@@ -119,15 +121,16 @@ yi_channel_t* yi_server_new_channel(yi_server_t* server, char* name,
 {
   yi_channel_t* channel = yi_channel_create(name, topic);
 
+  server->channels_list[server->channels_count] = channel;
   yi_table_add(server->channels, channel->name, (void*)channel);
   channel->cid = server->channels_count++;
 
   return channel;
 }
 
-void yi_server_delete_channel(yi_server_t* server, yi_channel_t* channel)
+yi_channel_t* yi_server_get_channel(yi_server_t* server, char* name)
 {
-  yi_table_remove(server->channels, channel->name);
-  server->channels[channel->cid] = NULL;
-  yi_channel_destroy(channel);
+  return yi_table_get(server->channels, name);
 }
+
+

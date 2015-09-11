@@ -27,7 +27,7 @@ typedef struct yi_server_t {
   unsigned channels_count;
   char channel_modes[YI_MAX_NAME];
   yi_table_t* channels; //  YI_MAX_CHANNELS
-  /* yi_channel_t* channels[YI_MAX_CHANNELS]; */
+  yi_channel_t* channels_list[YI_MAX_CHANNELS];
 } yi_server_t;
 
 // ctor dtor
@@ -47,7 +47,6 @@ void yi_server_remove_user(yi_server_t* server, yi_user_t* user);
 yi_channel_t* yi_server_new_channel(yi_server_t* server, char* name,
                                     char* topic);
 yi_channel_t* yi_server_get_channel(yi_server_t* server, char* name);
-void yi_server_delete_channel(yi_server_t* server, yi_channel_t* channel);
 
 // TODO improve this with buffering capabilities (reduce 'write' calls)
 int yi_server_send_message(yi_server_t* server, yi_user_t* user, char* command,
