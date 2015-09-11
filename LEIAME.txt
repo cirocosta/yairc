@@ -37,6 +37,28 @@ Em suma, estão definidos:
 - MACTEMPERATURA (não implementado :/)
 
 
+Estrutura
+---------
+
+- base
+  - unet        : wrapper sobre procedimentos de networking em sistemas
+                  derivados do unix
+  - connection  : abstração sobre conexões: ativa / passiva.
+                    ativa seria usada no MACTEMPERATURA, não implementado.
+  - table       : wrapper das funcionalidades de hsearch(3)
+
+- aplicação
+  - server      : lógica do servidor, gerenciamento de threads (faltou ping)
+  - channel     : gerenciamente de um único canal
+  - commands    : interpretação de comandos recebidos pelo servidor
+  - user        : abstração de um usuário 
+
+- base de interpretação
+  - is          : verificação de strings e caracteres
+  - lexer       : criação de tokens com base na verificação
+  - parser      : parser preditivo a partir dos tokens gerados
+
+
 Mais Infos
 ---------
 
