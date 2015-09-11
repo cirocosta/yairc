@@ -56,7 +56,8 @@ Estrutura
 - base de interpretação
   - is          : verificação de strings e caracteres
   - lexer       : criação de tokens com base na verificação
-  - parser      : parser preditivo a partir dos tokens gerados
+  - parser      : parser preditivo a partir dos tokens gerados a partir de 
+                  mensagens.
 
 
 Mais Infos
