@@ -47,10 +47,13 @@ int yi_listen(int sockfd, int backlog)
 int yi_accept(int sockfd, struct sockaddr *addr, socklen_t *addrlen)
 {
   int n;
+
+  *addrlen = sizeof(*addr);
   // we could have an ECONNABORTED here, in which case we'd not
   // really exit w/ a failure, but ignore.
-  ASSERT(~(n = accept(sockfd, addr, addrlen)), "bind error: %s",
+  ASSERT(~(n = accept(sockfd, addr, addrlen)), "accept error: %s",
          strerror(errno));
+
   return n;
 }
 
@@ -97,10 +100,12 @@ ssize_t write_n(int fd, const void *vptr, size_t n)
   return nwritten;
 }
 
-void yi_write_ne(int fd, const void *ptr, size_t nbytes)
+void yi_write_ne(int fd, const void *ptr)
 {
+  unsigned nbytes = strlen(ptr);
+
   ASSERT(write_n(fd, ptr, nbytes) == nbytes,
-         "Error during write_n: not enought bytes written");
+         "Couldn't write all the bytes (`%s`).", ptr);
 }
 
 const char *yi_inet_ntop(int family, const void *addrptr, char *strptr,

@@ -1,10 +1,13 @@
 #ifndef YAIRC__COMMON_H
 #define YAIRC__COMMON_H
 
+#include "yairc/constants.h"
 #include <errno.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+
+#define CRLF "\r\n"
 
 #define FREE(__ptr)                                                            \
   do {                                                                         \

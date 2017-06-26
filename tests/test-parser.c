@@ -8,11 +8,25 @@
 void test1()
 {
   const char* msg = "PING :levin.mozilla.org\r\n";
-  yi_message_t* message = yi_parse(msg, strlen(msg));
+  yi_message_t* message = yi_message_create("", 0);
+  ASSERT(yi_parse_m(message, msg, strlen(msg)) == YI_MESSAGE_OK, "parse ok!");
 
   ASSERT(strlen(message->prefix) == 0, "No prefix");
   STRNCMP(message->command, "PING");
   STRNCMP(message->parameters[0], "levin.mozilla.org");
+  ASSERT(message->parameters_count == 1, "");
+
+  yi_message_reset(message, msg, strlen(msg));
+  ASSERT(strlen(message->prefix) == 0, "No prefix");
+  ASSERT(strlen(message->command) == 0, "No command");
+  ASSERT(strlen(message->parameters[0]) == 0, "No first parameter");
+  ASSERT(message->parameters_count == 0, "");
+
+  ASSERT(yi_parse_m(message, msg, strlen(msg)) == YI_MESSAGE_OK, "parse ok!");
+  ASSERT(strlen(message->prefix) == 0, "No prefix");
+  STRNCMP(message->command, "PING");
+  STRNCMP(message->parameters[0], "levin.mozilla.org");
+  ASSERT(message->parameters_count == 1, "");
 
   yi_message_destroy(message);
 }
@@ -21,10 +35,20 @@ void test2()
 {
   const char* msg =
       ":levin.mozilla.org 376 guest :End of message of the day.\r\n";
-  yi_message_t* message = yi_parse(msg, strlen(msg));
+  yi_message_t* message = yi_message_create("", 0);
+  ASSERT(yi_parse_m(message, msg, strlen(msg)) == YI_MESSAGE_OK, "parse ok!");
 
   STRNCMP(message->prefix, "levin.mozilla.org");
   STRNCMP(message->command, "376");
+  ASSERT(message->parameters_count == 2, "");
+  STRNCMP(message->parameters[0], "guest");
+  STRNCMP(message->parameters[1], "End of message of the day.");
+
+  // resets internally and is ready to do it again
+  ASSERT(yi_parse_m(message, msg, strlen(msg)) == YI_MESSAGE_OK, "parse ok!");
+  STRNCMP(message->prefix, "levin.mozilla.org");
+  STRNCMP(message->command, "376");
+  ASSERT(message->parameters_count == 2, "");
   STRNCMP(message->parameters[0], "guest");
   STRNCMP(message->parameters[1], "End of message of the day.");
 
@@ -35,42 +59,30 @@ void test3()
 {
   const char* msg = ":NickServ!services@ircservices.mozilla.org NOTICE guest "
                     ":please choose a different nick.\r\n";
+  const char* msg2 =
+      ":levin.mozilla.org 376 guest :End of message of the day.\r\n";
 
-  yi_message_t* message = yi_parse(msg, strlen(msg));
+  yi_message_t* message = yi_message_create(NULL, 0);
+
+  yi_parse_m(message, msg, strlen(msg));
 
   STRNCMP(message->prefix, "NickServ!services@ircservices.mozilla.org");
   STRNCMP(message->command, "NOTICE");
+  ASSERT(message->parameters_count == 2, "");
   STRNCMP(message->parameters[0], "guest");
   STRNCMP(message->parameters[1], "please choose a different nick.");
 
+  // multiple messages
+
+  yi_parse_m(message, msg2, strlen(msg2));
+
+  STRNCMP(message->prefix, "levin.mozilla.org");
+  STRNCMP(message->command, "376");
+  ASSERT(message->parameters_count == 2, "");
+  STRNCMP(message->parameters[0], "guest");
+  STRNCMP(message->parameters[1], "End of message of the day.");
+
   yi_message_destroy(message);
-}
-
-// FUCKING remember: char* msg = "hue" ==> string literal
-//                   char msg[] ==> modifiable string
-//         just testing some functionality for reading \r\n's
-void test4()
-{
-  char out_buf[4096] = { 0 };
-  char buf[] = "kkKkkkKKKk\r\nTTTTTTTTTTTTTTTTTTTTT\r\nbbbb\r\nxxxx";
-  char* la = NULL;
-  char* tmp = NULL;
-  unsigned len = 0;
-
-  tmp = buf;
-  while ((la = strstr(tmp, "\r\n"))) {
-    la += 2;
-    len = la - tmp;
-
-    memcpy(out_buf, tmp, len);
-    out_buf[len] = '\0';
-    write(STDOUT_FILENO, out_buf, len);
-    tmp = la;
-  }
-
-  memmove(buf, tmp, strlen(tmp));
-  buf[strlen(tmp)] = '\0';
-  LOG("final arr = %s", buf);
 }
 
 int main(int argc, char* argv[])
@@ -78,7 +90,6 @@ int main(int argc, char* argv[])
   TEST(test1);
   TEST(test2);
   TEST(test3);
-  TEST(test4, "Message split");
 
   return 0;
 }
